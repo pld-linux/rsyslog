@@ -1,5 +1,9 @@
-# TODO:
-# - enable mysql, pgsql and snmp support
+#
+# Conditional build:
+%bcond_without  mysql		# Enable MySql database support 
+%bcond_without  pgsql		# Enable PostgreSQL database support
+%bcond_without	snmp		# Enable SNMP support
+
 Summary:	Linux system and kernel logger
 Summary(de.UTF-8):	Linux-System- und Kerner-Logger
 Summary(es.UTF-8):	Registrador de log del sistema linux
@@ -8,12 +12,15 @@ Summary(pl.UTF-8):	Programy logujące zdarzenia w systemie i jądrze Linuksa
 Summary(pt_BR.UTF-8):	Registrador de log do sistema linux
 Summary(tr.UTF-8):	Linux sistem ve çekirdek kayıt süreci
 Name:		rsyslog
-Version:	3.11.0
+Version:	3.16.2
 Release:	0.1
 License:	GPL v3
 Group:		Daemons
 Source0:	http://download.rsyslog.com/rsyslog/%{name}-%{version}.tar.gz
-# Source0-md5:	5d4714517de0d3ab5214462b8401c7d9
+# Source0-md5:	568d0ad73a149974b9bcfcb9e64bfc0b
+%{?with_mysql:BuildRequires: mysql-devel}
+%{?with_pgsql:BuildRequires: postgresql-devel}
+%{?with_snmp:BuildRequires: net-snmp-devel}	
 #Source1:	syslog.conf
 #Source2:	syslog.init
 #Source3:	syslog.logrotate
@@ -92,8 +99,11 @@ do logowania komunikatów jądra Linuksa.
 %setup -q
 
 %build
-# Possible syslog backends:  --enable-mysql --enable-pgsql
-%configure
+%configure \
+%{?with_mysql:--enable-mysql} \
+%{?with_pgsql:--enable-pgsql} \
+%{?with_snmp:--enable-snmp}
+
 %{__make}
 
 %install
@@ -191,7 +201,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
-#%doc ANNOUNCE NEWS README* CHANGES
+%doc AUTHORS ChangeLog NEWS README
 #%attr(640,root,syslog) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/*.conf
 #%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/syslog
 #%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/syslog
