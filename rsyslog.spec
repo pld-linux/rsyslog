@@ -224,6 +224,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(754,root,root) /etc/rc.d/init.d/rsyslog
 %attr(640,root,root) %ghost /var/log/*
 %attr(755,root,root) %{_sbindir}/rsyslogd
+%dir %{_libdir}/rsyslog
 %{_libdir}/rsyslog/omsnmp.so
 %{_libdir}/rsyslog/imklog.so
 %{_libdir}/rsyslog/immark.so
