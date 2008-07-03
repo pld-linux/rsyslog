@@ -19,6 +19,9 @@ License:	GPL v3
 Group:		Daemons
 Source0:	http://download.rsyslog.com/rsyslog/%{name}-%{version}.tar.gz
 # Source0-md5:	568d0ad73a149974b9bcfcb9e64bfc0b
+Source1:	%{name}.init
+Source2:	%{name}.conf
+Source3:	%{name}.sysconfig
 URL:		http://www.rsyslog.com/
 %{?with_gssapi:BuildRequires: krb5-devel}
 %{?with_mysql:BuildRequires: mysql-devel}
@@ -134,6 +137,11 @@ install -d $RPM_BUILD_ROOT/etc/{sysconfig,rc.d/init.d,logrotate.d} \
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 
+install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/rsyslog
+install %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/rsyslog.conf
+install %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/rsyslog
+install redhat/rsyslog.log $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/rsyslog
+
 for n in debug kernel maillog messages secure syslog user spooler lpr daemon
 do
 	> $RPM_BUILD_ROOT/var/log/$n
@@ -210,13 +218,12 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(644,root,root,755)
 %doc AUTHORS ChangeLog NEWS README
-#%attr(640,root,syslog) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/*.conf
-#%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/syslog
-#%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/syslog
-#%attr(754,root,root) /etc/rc.d/init.d/syslog
+%attr(640,root,syslog) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/rsyslog.conf
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/rsyslog
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/rsyslog
+%attr(754,root,root) /etc/rc.d/init.d/rsyslog
 %attr(640,root,root) %ghost /var/log/*
 %attr(755,root,root) %{_sbindir}/rsyslogd
-#%attr(755,root,root) %{_bindir}/syslogd-listfiles
 %{_libdir}/rsyslog/omsnmp.so
 %{_libdir}/rsyslog/imklog.so
 %{_libdir}/rsyslog/immark.so
