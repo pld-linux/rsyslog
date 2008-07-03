@@ -245,17 +245,23 @@ rm -rf $RPM_BUILD_ROOT
 #%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/klogd
 #%attr(755,root,root) %{_sbindir}/klogd
 
+%if %{with mysql}
 %files mysql
 %defattr(644,root,root,755)
 %doc plugins/ommysql/createDB.sql
 %{_libdir}/rsyslog/ommysql.so
+%endif
 
+%if %{with pgsql}
 %files pgsql
 %defattr(644,root,root,755)
 %doc plugins/ompgsql/createDB.sql
 %{_libdir}/rsyslog/ompgsql.so
+%endif
 
+%if %{with gssapi}
 %files gssapi
 %defattr(644,root,root,755)
 %{_libdir}/rsyslog/imgssapi.so
 %{_libdir}/rsyslog/omgssapi.so
+%endif
