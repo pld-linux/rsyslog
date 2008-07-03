@@ -88,7 +88,7 @@ do logowania komunikatów jądra Linuksa.
 %package mysql
 Summary:	MySQL support for rsyslog
 Group:		Daemons
-Requires:	%name = %version-%release
+Requires:	%{name} = %{version}-%{release}
 
 %description mysql
 The rsyslog-mysql package contains a dynamic shared object that will
@@ -97,7 +97,7 @@ add MySQL database support to rsyslog.
 %package pgsql
 Summary:	PostgresSQL support for rsyslog
 Group:		Daemons
-Requires:	%name = %version-%release
+Requires:	%{name} = %{version}-%{release}
 
 %description pgsql
 The rsyslog-pgsql package contains a dynamic shared object that will
@@ -106,7 +106,7 @@ add PostgreSQL database support to rsyslog.
 %package gssapi
 Summary:	GSSAPI authentication and encryption support for rsyslog
 Group:		Daemons
-Requires:	%name = %version-%release
+Requires:	%{name} = %{version}-%{release}
 
 %description gssapi
 The rsyslog-gssapi package contains the rsyslog plugins which support
