@@ -19,8 +19,8 @@ Group:		Daemons
 Source0:	http://download.rsyslog.com/rsyslog/%{name}-%{version}.tar.gz
 # Source0-md5:	568d0ad73a149974b9bcfcb9e64bfc0b
 %{?with_mysql:BuildRequires: mysql-devel}
+%{?with_snmp:BuildRequires: net-snmp-devel}
 %{?with_pgsql:BuildRequires: postgresql-devel}
-%{?with_snmp:BuildRequires: net-snmp-devel}	
 #Source1:	syslog.conf
 #Source2:	syslog.init
 #Source3:	syslog.logrotate
@@ -35,9 +35,9 @@ Requires(post,preun):	/sbin/chkconfig
 Requires(post,preun):	rc-scripts >= 0.2.0
 Requires(postun):	/usr/sbin/groupdel
 Requires(postun):	/usr/sbin/userdel
-Requires(pre):	/usr/lib/rpm/user_group.sh
 Requires(pre):	/bin/id
 Requires(pre):	/usr/bin/getgid
+Requires(pre):	/usr/lib/rpm/user_group.sh
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
 Requires(pre):	/usr/sbin/usermod
@@ -60,13 +60,13 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 #%define 	_sbindir	/sbin
 
 %description
-Rsyslog is an enhanced multi-threaded syslogd supporting, among others,
-MySQL, syslog/tcp, RFC 3195, permitted sender lists, filtering on any
-message part, and fine grain output format control. It is quite compatible
-to stock sysklogd and can be used as a drop-in replacement. Its advanced
-features make it suitable for enterprise-class, encryption protected
-syslog relay chains while at the same time being very easy to setup for
-the novice user.
+Rsyslog is an enhanced multi-threaded syslogd supporting, among
+others, MySQL, syslog/tcp, RFC 3195, permitted sender lists, filtering
+on any message part, and fine grain output format control. It is quite
+compatible to stock sysklogd and can be used as a drop-in replacement.
+Its advanced features make it suitable for enterprise-class,
+encryption protected syslog relay chains while at the same time being
+very easy to setup for the novice user.
 
 %package klogd
 Summary:	Linux kernel logger
@@ -77,9 +77,9 @@ Requires(post,preun):	/sbin/chkconfig
 Requires(post,preun):	rc-scripts >= 0.2.0
 Requires(postun):	/usr/sbin/groupdel
 Requires(postun):	/usr/sbin/userdel
-Requires(pre):	/usr/lib/rpm/user_group.sh
 Requires(pre):	/bin/id
 Requires(pre):	/usr/bin/getgid
+Requires(pre):	/usr/lib/rpm/user_group.sh
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
 Requires(pre):	/usr/sbin/usermod
@@ -92,8 +92,8 @@ This is the Linux kernel logging program. It is run as a daemon
 (background process) to log messages from kernel.
 
 %description -l pl.UTF-8
-Pakiet ten zawiera program, który jest uruchamiany jako demon i służy
-do logowania komunikatów jądra Linuksa.
+Pakiet ten zawiera program, który jest uruchamiany jako demon i
+służy do logowania komunikatów jądra Linuksa.
 
 %prep
 %setup -q
