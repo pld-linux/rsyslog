@@ -19,10 +19,11 @@ License:	GPL v3
 Group:		Daemons
 Source0:	http://download.rsyslog.com/rsyslog/%{name}-%{version}.tar.gz
 # Source0-md5:	568d0ad73a149974b9bcfcb9e64bfc0b
+URL:		http://www.rsyslog.com/
+%{?with_gssapi:BuildRequires: krb5-devel}
 %{?with_mysql:BuildRequires: mysql-devel}
 %{?with_snmp:BuildRequires: net-snmp-devel}
 %{?with_pgsql:BuildRequires: postgresql-devel}
-URL:		http://www.rsyslog.com/
 Requires(post):	fileutils
 Requires(post,preun):	/sbin/chkconfig
 Requires(post,preun):	rc-scripts >= 0.2.0
@@ -81,39 +82,36 @@ This is the Linux kernel logging program. It is run as a daemon
 (background process) to log messages from kernel.
 
 %description -l pl.UTF-8
-Pakiet ten zawiera program, który jest uruchamiany jako demon i
-służy do logowania komunikatów jądra Linuksa.
+Pakiet ten zawiera program, który jest uruchamiany jako demon i służy
+do logowania komunikatów jądra Linuksa.
 
 %package mysql
-Summary: MySQL support for rsyslog
-Group: System Environment/Daemons
-Requires: %name = %version-%release
-BuildRequires: mysql-devel >= 4.0
+Summary:	MySQL support for rsyslog
+Group:		Daemons
+Requires:	%name = %version-%release
 
 %description mysql
-The rsyslog-mysql package contains a dynamic shared object that will add
-MySQL database support to rsyslog.
+The rsyslog-mysql package contains a dynamic shared object that will
+add MySQL database support to rsyslog.
 
 %package pgsql
-Summary: PostgresSQL support for rsyslog
-Group: System Environment/Daemons
-Requires: %name = %version-%release
-BuildRequires: postgresql-devel
+Summary:	PostgresSQL support for rsyslog
+Group:		Daemons
+Requires:	%name = %version-%release
 
 %description pgsql
-The rsyslog-pgsql package contains a dynamic shared object that will add
-PostgreSQL database support to rsyslog.
+The rsyslog-pgsql package contains a dynamic shared object that will
+add PostgreSQL database support to rsyslog.
 
 %package gssapi
-Summary: GSSAPI authentication and encryption support for rsyslog
-Group: System Environment/Daemons
-Requires: %name = %version-%release
-BuildRequires: krb5-devel
+Summary:	GSSAPI authentication and encryption support for rsyslog
+Group:		Daemons
+Requires:	%name = %version-%release
 
 %description gssapi
-The rsyslog-gssapi package contains the rsyslog plugins which support GSSAPI
-authentication and secure connections. GSSAPI is commonly used for Kerberos
-authentication.
+The rsyslog-gssapi package contains the rsyslog plugins which support
+GSSAPI authentication and secure connections. GSSAPI is commonly used
+for Kerberos authentication.
 
 %prep
 %setup -q
