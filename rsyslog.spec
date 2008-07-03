@@ -1,5 +1,6 @@
 #
 # Conditional build:
+%bcond_without	gssapi		# Enable GSSAPI Kerberos 5 support
 %bcond_without  mysql		# Enable MySql database support 
 %bcond_without  pgsql		# Enable PostgreSQL database support
 %bcond_without	snmp		# Enable SNMP support
@@ -21,14 +22,6 @@ Source0:	http://download.rsyslog.com/rsyslog/%{name}-%{version}.tar.gz
 %{?with_mysql:BuildRequires: mysql-devel}
 %{?with_snmp:BuildRequires: net-snmp-devel}
 %{?with_pgsql:BuildRequires: postgresql-devel}
-#Source1:	syslog.conf
-#Source2:	syslog.init
-#Source3:	syslog.logrotate
-#Source4:	syslog.sysconfig
-#Source5:	klogd.init
-#Source6:	klogd.sysconfig
-#Source7:	syslogd-listfiles.sh
-#Source8:	syslogd-listfiles.8
 URL:		http://www.rsyslog.com/
 Requires(post):	fileutils
 Requires(post,preun):	/sbin/chkconfig
@@ -54,10 +47,6 @@ Obsoletes:	msyslog
 Obsoletes:	sysklogd
 Obsoletes:	syslog-ng
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
-
-#%define		_exec_prefix	/
-#%define 	_bindir		/usr/sbin
-#%define 	_sbindir	/sbin
 
 %description
 Rsyslog is an enhanced multi-threaded syslogd supporting, among
@@ -95,11 +84,43 @@ This is the Linux kernel logging program. It is run as a daemon
 Pakiet ten zawiera program, który jest uruchamiany jako demon i
 służy do logowania komunikatów jądra Linuksa.
 
+%package mysql
+Summary: MySQL support for rsyslog
+Group: System Environment/Daemons
+Requires: %name = %version-%release
+BuildRequires: mysql-devel >= 4.0
+
+%description mysql
+The rsyslog-mysql package contains a dynamic shared object that will add
+MySQL database support to rsyslog.
+
+%package pgsql
+Summary: PostgresSQL support for rsyslog
+Group: System Environment/Daemons
+Requires: %name = %version-%release
+BuildRequires: postgresql-devel
+
+%description pgsql
+The rsyslog-pgsql package contains a dynamic shared object that will add
+PostgreSQL database support to rsyslog.
+
+%package gssapi
+Summary: GSSAPI authentication and encryption support for rsyslog
+Group: System Environment/Daemons
+Requires: %name = %version-%release
+BuildRequires: krb5-devel
+
+%description gssapi
+The rsyslog-gssapi package contains the rsyslog plugins which support GSSAPI
+authentication and secure connections. GSSAPI is commonly used for Kerberos
+authentication.
+
 %prep
 %setup -q
 
 %build
 %configure \
+%{?with_gssapi:--enable-gssapi-krb5} \
 %{?with_mysql:--enable-mysql} \
 %{?with_pgsql:--enable-pgsql} \
 %{?with_snmp:--enable-snmp}
@@ -113,18 +134,7 @@ install -d $RPM_BUILD_ROOT/etc/{sysconfig,rc.d/init.d,logrotate.d} \
 	$RPM_BUILD_ROOT/{dev,var/log}
 
 %{__make} install \
-	DESTDIR=$RPM_BUILD_ROOT%{_sbindir}
-
-#install %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/syslog.conf
-
-#install %{SOURCE2} $RPM_BUILD_ROOT/etc/rc.d/init.d/syslog
-#install %{SOURCE3} $RPM_BUILD_ROOT/etc/logrotate.d/syslog
-#install %{SOURCE4} $RPM_BUILD_ROOT/etc/sysconfig/syslog
-#install %{SOURCE5} $RPM_BUILD_ROOT/etc/rc.d/init.d/klogd
-#install %{SOURCE6} $RPM_BUILD_ROOT/etc/sysconfig/klogd
-
-#install %{SOURCE7} $RPM_BUILD_ROOT%{_bindir}/syslogd-listfiles
-#install %{SOURCE8} $RPM_BUILD_ROOT%{_mandir}/man8
+	DESTDIR=$RPM_BUILD_ROOT
 
 for n in debug kernel maillog messages secure syslog user spooler lpr daemon
 do
@@ -209,12 +219,38 @@ rm -rf $RPM_BUILD_ROOT
 %attr(640,root,root) %ghost /var/log/*
 %attr(755,root,root) %{_sbindir}/rsyslogd
 #%attr(755,root,root) %{_bindir}/syslogd-listfiles
-#%{_mandir}/man5/*
-#%{_mandir}/man8/sys*
+%{_libdir}/rsyslog/omsnmp.so
+%{_libdir}/rsyslog/imklog.so
+%{_libdir}/rsyslog/immark.so
+%{_libdir}/rsyslog/imtcp.so
+%{_libdir}/rsyslog/imudp.so
+%{_libdir}/rsyslog/imuxsock.so
+%{_libdir}/rsyslog/lmgssutil.so
+%{_libdir}/rsyslog/lmnet.so
+%{_libdir}/rsyslog/lmregexp.so
+%{_libdir}/rsyslog/lmtcpclt.so
+%{_libdir}/rsyslog/lmtcpsrv.so
+%{_libdir}/rsyslog/omtesting.so
+%{_mandir}/man5/*
+%{_mandir}/man8/*
 
 %files klogd
 %defattr(644,root,root,755)
 #%attr(754,root,root) /etc/rc.d/init.d/klogd
 #%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/klogd
 #%attr(755,root,root) %{_sbindir}/klogd
-#%{_mandir}/man8/klog*
+
+%files mysql
+%defattr(644,root,root,755)
+%doc plugins/ommysql/createDB.sql
+%{_libdir}/rsyslog/ommysql.so
+
+%files pgsql
+%defattr(644,root,root,755)
+%doc plugins/ompgsql/createDB.sql
+%{_libdir}/rsyslog/ompgsql.so
+
+%files gssapi
+%defattr(644,root,root,755)
+%{_libdir}/rsyslog/imgssapi.so
+%{_libdir}/rsyslog/omgssapi.so
