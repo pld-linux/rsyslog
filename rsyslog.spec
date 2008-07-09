@@ -1,10 +1,10 @@
 #
 # Conditional build:
-%bcond_without	gssapi		# Enable GSSAPI Kerberos 5 support
-%bcond_without  mysql		# Enable MySql database support 
-%bcond_without  pgsql		# Enable PostgreSQL database support
-%bcond_without	snmp		# Enable SNMP support
-
+%bcond_without	gssapi		# GSSAPI Kerberos 5 support
+%bcond_without	mysql		# MySQL database support 
+%bcond_without	pgsql		# PostgreSQL database support
+%bcond_without	snmp		# SNMP support
+#
 Summary:	Linux system and kernel logger
 Summary(de.UTF-8):	Linux-System- und Kerner-Logger
 Summary(es.UTF-8):	Registrador de log del sistema linux
@@ -23,10 +23,10 @@ Source1:	%{name}.init
 Source2:	%{name}.conf
 Source3:	%{name}.sysconfig
 URL:		http://www.rsyslog.com/
-%{?with_gssapi:BuildRequires: krb5-devel}
-%{?with_mysql:BuildRequires: mysql-devel}
-%{?with_snmp:BuildRequires: net-snmp-devel}
-%{?with_pgsql:BuildRequires: postgresql-devel}
+%{?with_gssapi:BuildRequires:	krb5-devel}
+%{?with_mysql:BuildRequires:	mysql-devel}
+%{?with_snmp:BuildRequires:	net-snmp-devel}
+%{?with_pgsql:BuildRequires:	postgresql-devel}
 Requires(post):	fileutils
 Requires(post,preun):	/sbin/chkconfig
 Requires(post,preun):	rc-scripts >= 0.2.0
@@ -61,6 +61,16 @@ Its advanced features make it suitable for enterprise-class,
 encryption protected syslog relay chains while at the same time being
 very easy to setup for the novice user.
 
+%description -l pl.UTF-8
+rsyslog to zaawansowany, wielowątkowy syslogd obsługujący m.in.
+MySQL-a, syslog/tcp, RFC 3195, listy dopuszczalnych nadawców,
+filtrowanie po częściach komunikatów i szczegółową kontrolę formatu
+wyjściowego. Jest w miarę kompatybilny ze zwykłym sysklogd i może być
+używany jako jego zamiennik. Jego zaawansowane możliwości czynią go
+odpowiednim do produkcyjnych, szyfrowanych łańcuchów przekazywania
+logów, a jednocześnie jest przy tym łatwy do skonfigurowania dla
+początkującego użytkownika.
+
 %package klogd
 Summary:	Linux kernel logger
 Summary(de.UTF-8):	Linux-Kerner-Logger
@@ -84,12 +94,13 @@ Obsoletes:	sysklogd
 This is the Linux kernel logging program. It is run as a daemon
 (background process) to log messages from kernel.
 
-%description -l pl.UTF-8
+%description klogd -l pl.UTF-8
 Pakiet ten zawiera program, który jest uruchamiany jako demon i służy
 do logowania komunikatów jądra Linuksa.
 
 %package mysql
 Summary:	MySQL support for rsyslog
+Summary(pl.UTF-8):	Obsługa MySQL-a do rsysloga
 Group:		Daemons
 Requires:	%{name} = %{version}-%{release}
 
@@ -97,8 +108,13 @@ Requires:	%{name} = %{version}-%{release}
 The rsyslog-mysql package contains a dynamic shared object that will
 add MySQL database support to rsyslog.
 
+%description mysql -l pl.UTF-8
+Pakiet rsyslog-mysql zawiera moduł dynamiczny dodający obsługę bazy
+danych MySQL do rsysloga.
+
 %package pgsql
 Summary:	PostgresSQL support for rsyslog
+Summary(pl.UTF-8):	Obsługa PostgreSQL-a dla rsysloga
 Group:		Daemons
 Requires:	%{name} = %{version}-%{release}
 
@@ -106,8 +122,13 @@ Requires:	%{name} = %{version}-%{release}
 The rsyslog-pgsql package contains a dynamic shared object that will
 add PostgreSQL database support to rsyslog.
 
+%description pgsql -l pl.UTF-8
+Pakiet rsyslog-pgsql zawiera moduł dynamiczny dodający obsługę bazy
+danych PostgreSQL do rsysloga.
+
 %package gssapi
 Summary:	GSSAPI authentication and encryption support for rsyslog
+Summary(pl.UTF-8):	Obsługa uwierzytelniania GSSAPI i szyfrowania dla rsysloga
 Group:		Daemons
 Requires:	%{name} = %{version}-%{release}
 
@@ -116,15 +137,20 @@ The rsyslog-gssapi package contains the rsyslog plugins which support
 GSSAPI authentication and secure connections. GSSAPI is commonly used
 for Kerberos authentication.
 
+%description gssapi -l pl.UTF-8
+Pakiet rsyslog-gssapi zawiera wtyczki rsysloga obsługujące
+uwierzytelnianie GSSAPI i bezpieczne połączenia. GSSAPI jest
+powszechnie używane do uwierzytelniania Kerberos.
+
 %prep
 %setup -q
 
 %build
 %configure \
-%{?with_gssapi:--enable-gssapi-krb5} \
-%{?with_mysql:--enable-mysql} \
-%{?with_pgsql:--enable-pgsql} \
-%{?with_snmp:--enable-snmp}
+	%{?with_gssapi:--enable-gssapi-krb5} \
+	%{?with_mysql:--enable-mysql} \
+	%{?with_pgsql:--enable-pgsql} \
+	%{?with_snmp:--enable-snmp}
 
 %{__make}
 
@@ -225,23 +251,23 @@ rm -rf $RPM_BUILD_ROOT
 %attr(640,root,root) %ghost /var/log/*
 %attr(755,root,root) %{_sbindir}/rsyslogd
 %dir %{_libdir}/rsyslog
-%{_libdir}/rsyslog/omsnmp.so
-%{_libdir}/rsyslog/imklog.so
-%{_libdir}/rsyslog/immark.so
-%{_libdir}/rsyslog/imtcp.so
-%{_libdir}/rsyslog/imudp.so
-%{_libdir}/rsyslog/imuxsock.so
-%{_libdir}/rsyslog/lmgssutil.so
-%{_libdir}/rsyslog/lmnet.so
-%{_libdir}/rsyslog/lmregexp.so
-%{_libdir}/rsyslog/lmtcpclt.so
-%{_libdir}/rsyslog/lmtcpsrv.so
-%{_libdir}/rsyslog/omtesting.so
+%attr(755,root,root) %{_libdir}/rsyslog/omsnmp.so
+%attr(755,root,root) %{_libdir}/rsyslog/imklog.so
+%attr(755,root,root) %{_libdir}/rsyslog/immark.so
+%attr(755,root,root) %{_libdir}/rsyslog/imtcp.so
+%attr(755,root,root) %{_libdir}/rsyslog/imudp.so
+%attr(755,root,root) %{_libdir}/rsyslog/imuxsock.so
+%attr(755,root,root) %{_libdir}/rsyslog/lmgssutil.so
+%attr(755,root,root) %{_libdir}/rsyslog/lmnet.so
+%attr(755,root,root) %{_libdir}/rsyslog/lmregexp.so
+%attr(755,root,root) %{_libdir}/rsyslog/lmtcpclt.so
+%attr(755,root,root) %{_libdir}/rsyslog/lmtcpsrv.so
+%attr(755,root,root) %{_libdir}/rsyslog/omtesting.so
 %{_mandir}/man5/*
 %{_mandir}/man8/*
 
-%files klogd
-%defattr(644,root,root,755)
+#%files klogd
+#%defattr(644,root,root,755)
 #%attr(754,root,root) /etc/rc.d/init.d/klogd
 #%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/klogd
 #%attr(755,root,root) %{_sbindir}/klogd
@@ -250,19 +276,19 @@ rm -rf $RPM_BUILD_ROOT
 %files mysql
 %defattr(644,root,root,755)
 %doc plugins/ommysql/createDB.sql
-%{_libdir}/rsyslog/ommysql.so
+%attr(755,root,root) %{_libdir}/rsyslog/ommysql.so
 %endif
 
 %if %{with pgsql}
 %files pgsql
 %defattr(644,root,root,755)
 %doc plugins/ompgsql/createDB.sql
-%{_libdir}/rsyslog/ompgsql.so
+%attr(755,root,root) %{_libdir}/rsyslog/ompgsql.so
 %endif
 
 %if %{with gssapi}
 %files gssapi
 %defattr(644,root,root,755)
-%{_libdir}/rsyslog/imgssapi.so
-%{_libdir}/rsyslog/omgssapi.so
+%attr(755,root,root) %{_libdir}/rsyslog/imgssapi.so
+%attr(755,root,root) %{_libdir}/rsyslog/omgssapi.so
 %endif
