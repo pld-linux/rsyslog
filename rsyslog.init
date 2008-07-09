@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # rsyslog        Starts rsyslogd/rklogd.
 #
@@ -7,71 +7,62 @@
 # description: Syslog is the facility by which many daemons use to log \
 # messages to various system log files.  It is a good idea to always \
 # run rsyslog.
-### BEGIN INIT INFO
-# Provides: $syslog
-# Required-Start: $local_fs $network $remote_fs
-# Required-Stop: $local_fs $network $remote_fs
-# Default-Stop: 0 1 2 3 4 5 6
-# Short-Description: Enhanced system logging and kernel message trapping daemons
-# Description: Rsyslog is an enhanced multi-threaded syslogd supporting, 
-#              among others, MySQL, syslog/tcp, RFC 3195, permitted 
-#              sender lists, filtering on any message part, and fine 
-#              grain output format control.
-### END INIT INFO
+# processname: rsyslogd
 
 # Source function library.
-. /etc/init.d/functions
+. /etc/rc.d/init.d/functions
 
-RETVAL=0
+SYSLOGD_OPTIONS=
+
+# Source config
+if [ -f /etc/sysconfig/rsyslog ] ; then
+	. /etc/sysconfig/rsyslog
+fi
 
 start() {
-	[ -x /usr/sbin/rsyslogd ] || exit 5
-
-	# Source config
-        if [ -f /etc/sysconfig/rsyslog ] ; then
-                . /etc/sysconfig/rsyslog
+	if [ ! -f /var/lock/subsys/rsyslog ]; then
+		umask 077
+		msg_starting rsyslogd
+		daemon rsyslogd $SYSLOGD_OPTIONS
+		RETVAL=$?
+		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/rsyslog
+	else
+		msg_already_running rsyslogd
 	fi
-	umask 077
-
-        echo -n $"Starting system logger: "
-        daemon rsyslogd $SYSLOGD_OPTIONS
-        RETVAL=$?
-        echo
-        [ $RETVAL -eq 0 ] && touch /var/lock/subsys/rsyslog
-        return $RETVAL
 }
+
 stop() {
-        echo -n $"Shutting down system logger: "
-        killproc rsyslogd
-        RETVAL=$?
-        echo
-        [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/rsyslog
-        return $RETVAL
-}
-reload()  {
-    RETVAL=1
-    syslog=`cat /var/run/syslogd.pid 2>/dev/null`
-    echo -n "Reloading system logger..."
-    if [ -n "${syslog}" ] && [ -e /proc/"${syslog}" ]; then
-	kill -HUP "$syslog";
-	RETVAL=$?
-    fi
-    if [ $RETVAL -ne 0 ]; then
-	failure
-    else
-	success
-    fi
-    echo
-    return $RETVAL
-}
-rhstatus() {
-        status rsyslogd
-}
-restart() {
-        stop
-        start
+	if [ -f /var/lock/subsys/rsyslog ]; then
+		msg_stopping rsyslogd
+		killproc rsyslogd
+		rm -f /var/lock/subsys/rsyslog
+	else
+		msg_not_running rsyslogd
+	fi
 }
 
+reload()  {
+	if [ -f /var/lock/subsys/rsyslog ]; then
+		msg_reloading rsyslogd
+		killproc --pidfile /var/run/syslogd.pid rsyslogd -HUP
+		RETVAL=$?
+	else
+		msg_not_running rsyslogd
+		RETVAL=7
+	fi
+}
+
+condrestart() {
+	if [ -f /var/lock/subsys/rsyslog ]; then
+		stop
+		start
+	else
+		msg_not_running rsyslogd
+		RETVAL=$1
+	fi
+}
+
+RETVAL=0
 case "$1" in
   start)
         start
@@ -80,20 +71,21 @@ case "$1" in
         stop
         ;;
   restart)
-        restart
+        stop
+	start
         ;;
+  try-restart)
+	condrestart 0
+	;;
   reload|force-reload)
 	reload
 	;;
   status)
-        rhstatus
-        ;;
-  condrestart)
-        [ -f /var/lock/subsys/rsyslog ] && restart || :
+        status rsyslogd
         ;;
   *)
-        echo $"Usage: $0 {start|stop|restart|reload|force-reload|condrestart}"
-        exit 2
+        msg_usage "$0 {start|stop|restart|try-restart|reload|force-reload|status}"
+        exit 3
 esac
 
-exit $?
+exit $RETVAL
