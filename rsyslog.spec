@@ -64,12 +64,12 @@ very easy to setup for the novice user.
 %description -l pl.UTF-8
 rsyslog to zaawansowany, wielowątkowy syslogd obsługujący m.in.
 MySQL-a, syslog/tcp, RFC 3195, listy dopuszczalnych nadawców,
-filtrowanie po częściach komunikatów i szczegółową kontrolę
-formatu wyjściowego. Jest w miarę kompatybilny ze zwykłym sysklogd
-i może być używany jako jego zamiennik. Jego zaawansowane
-możliwości czynią go odpowiednim do produkcyjnych, szyfrowanych
-łańcuchów przekazywania logów, a jednocześnie jest przy tym
-łatwy do skonfigurowania dla początkującego użytkownika.
+filtrowanie po częściach komunikatów i szczegółową kontrolę formatu
+wyjściowego. Jest w miarę kompatybilny ze zwykłym sysklogd i może być
+używany jako jego zamiennik. Jego zaawansowane możliwości czynią go
+odpowiednim do produkcyjnych, szyfrowanych łańcuchów przekazywania
+logów, a jednocześnie jest przy tym łatwy do skonfigurowania dla
+początkującego użytkownika.
 
 %package klogd
 Summary:	Linux kernel logger
@@ -95,8 +95,8 @@ This is the Linux kernel logging program. It is run as a daemon
 (background process) to log messages from kernel.
 
 %description klogd -l pl.UTF-8
-Pakiet ten zawiera program, który jest uruchamiany jako demon i
-służy do logowania komunikatów jądra Linuksa.
+Pakiet ten zawiera program, który jest uruchamiany jako demon i służy
+do logowania komunikatów jądra Linuksa.
 
 %package mysql
 Summary:	MySQL support for rsyslog
@@ -109,8 +109,8 @@ The rsyslog-mysql package contains a dynamic shared object that will
 add MySQL database support to rsyslog.
 
 %description mysql -l pl.UTF-8
-Pakiet rsyslog-mysql zawiera moduł dynamiczny dodający obsługę
-bazy danych MySQL do rsysloga.
+Pakiet rsyslog-mysql zawiera moduł dynamiczny dodający obsługę bazy
+danych MySQL do rsysloga.
 
 %package pgsql
 Summary:	PostgresSQL support for rsyslog
@@ -123,8 +123,8 @@ The rsyslog-pgsql package contains a dynamic shared object that will
 add PostgreSQL database support to rsyslog.
 
 %description pgsql -l pl.UTF-8
-Pakiet rsyslog-pgsql zawiera moduł dynamiczny dodający obsługę
-bazy danych PostgreSQL do rsysloga.
+Pakiet rsyslog-pgsql zawiera moduł dynamiczny dodający obsługę bazy
+danych PostgreSQL do rsysloga.
 
 %package gssapi
 Summary:	GSSAPI authentication and encryption support for rsyslog
