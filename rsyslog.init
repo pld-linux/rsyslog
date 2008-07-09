@@ -25,7 +25,7 @@
 RETVAL=0
 
 start() {
-	[ -x /sbin/rsyslogd ] || exit 5
+	[ -x /usr/sbin/rsyslogd ] || exit 5
 
 	# Source config
         if [ -f /etc/sysconfig/rsyslog ] ; then
