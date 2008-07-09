@@ -14,7 +14,7 @@ Summary(pt_BR.UTF-8):	Registrador de log do sistema linux
 Summary(tr.UTF-8):	Linux sistem ve çekirdek kayıt süreci
 Name:		rsyslog
 Version:	3.16.2
-Release:	0.1
+Release:	0.2
 License:	GPL v3
 Group:		Daemons
 Source0:	http://download.rsyslog.com/rsyslog/%{name}-%{version}.tar.gz
@@ -64,12 +64,12 @@ very easy to setup for the novice user.
 %description -l pl.UTF-8
 rsyslog to zaawansowany, wielowątkowy syslogd obsługujący m.in.
 MySQL-a, syslog/tcp, RFC 3195, listy dopuszczalnych nadawców,
-filtrowanie po częściach komunikatów i szczegółową kontrolę formatu
-wyjściowego. Jest w miarę kompatybilny ze zwykłym sysklogd i może być
-używany jako jego zamiennik. Jego zaawansowane możliwości czynią go
-odpowiednim do produkcyjnych, szyfrowanych łańcuchów przekazywania
-logów, a jednocześnie jest przy tym łatwy do skonfigurowania dla
-początkującego użytkownika.
+filtrowanie po częściach komunikatów i szczegółową kontrolę
+formatu wyjściowego. Jest w miarę kompatybilny ze zwykłym sysklogd
+i może być używany jako jego zamiennik. Jego zaawansowane
+możliwości czynią go odpowiednim do produkcyjnych, szyfrowanych
+łańcuchów przekazywania logów, a jednocześnie jest przy tym
+łatwy do skonfigurowania dla początkującego użytkownika.
 
 %package klogd
 Summary:	Linux kernel logger
@@ -95,8 +95,8 @@ This is the Linux kernel logging program. It is run as a daemon
 (background process) to log messages from kernel.
 
 %description klogd -l pl.UTF-8
-Pakiet ten zawiera program, który jest uruchamiany jako demon i służy
-do logowania komunikatów jądra Linuksa.
+Pakiet ten zawiera program, który jest uruchamiany jako demon i
+służy do logowania komunikatów jądra Linuksa.
 
 %package mysql
 Summary:	MySQL support for rsyslog
@@ -109,8 +109,8 @@ The rsyslog-mysql package contains a dynamic shared object that will
 add MySQL database support to rsyslog.
 
 %description mysql -l pl.UTF-8
-Pakiet rsyslog-mysql zawiera moduł dynamiczny dodający obsługę bazy
-danych MySQL do rsysloga.
+Pakiet rsyslog-mysql zawiera moduł dynamiczny dodający obsługę
+bazy danych MySQL do rsysloga.
 
 %package pgsql
 Summary:	PostgresSQL support for rsyslog
@@ -123,8 +123,8 @@ The rsyslog-pgsql package contains a dynamic shared object that will
 add PostgreSQL database support to rsyslog.
 
 %description pgsql -l pl.UTF-8
-Pakiet rsyslog-pgsql zawiera moduł dynamiczny dodający obsługę bazy
-danych PostgreSQL do rsysloga.
+Pakiet rsyslog-pgsql zawiera moduł dynamiczny dodający obsługę
+bazy danych PostgreSQL do rsysloga.
 
 %package gssapi
 Summary:	GSSAPI authentication and encryption support for rsyslog
@@ -156,7 +156,7 @@ powszechnie używane do uwierzytelniania Kerberos.
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT/etc/{sysconfig,rc.d/init.d,logrotate.d} \
+install -d $RPM_BUILD_ROOT/etc/{sysconfig,rc.d/init.d,logrotate.d,rsyslog.d} \
 	$RPM_BUILD_ROOT{%{_sbindir},%{_mandir}/man{5,8},%{_bindir}} \
 	$RPM_BUILD_ROOT/{dev,var/log}
 
@@ -164,7 +164,7 @@ install -d $RPM_BUILD_ROOT/etc/{sysconfig,rc.d/init.d,logrotate.d} \
 	DESTDIR=$RPM_BUILD_ROOT
 
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/rsyslog
-install %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/rsyslog.conf
+install %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/rsyslog.d/rsyslog.conf
 install %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/rsyslog
 install redhat/rsyslog.log $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/rsyslog
 
@@ -192,7 +192,7 @@ for n in /var/log/{cron,daemon,debug,kernel,lpr,maillog,messages,secure,spooler,
 done
 
 /sbin/chkconfig --add %{name}
-%service syslog restart "%{name} daemon"
+%service rsyslog restart "%{name} daemon"
 %service -q %{name}-klogd restart
 
 %preun
@@ -244,7 +244,8 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(644,root,root,755)
 %doc AUTHORS ChangeLog NEWS README
-%attr(640,root,syslog) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/rsyslog.conf
+%dir %{_sysconfdir}/rsyslog.d
+%attr(640,root,syslog) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/rsyslog.d/rsyslog.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/rsyslog
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/rsyslog
 %attr(754,root,root) /etc/rc.d/init.d/rsyslog
