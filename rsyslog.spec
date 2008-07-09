@@ -165,8 +165,8 @@ install -d $RPM_BUILD_ROOT/etc/{sysconfig,rc.d/init.d,logrotate.d,rsyslog.d} \
 
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/rsyslog
 install %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/rsyslog.d/rsyslog.conf
-install %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/rsyslog
-install redhat/rsyslog.log $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/rsyslog
+install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/rsyslog
+install redhat/rsyslog.log $RPM_BUILD_ROOT/etc/logrotate.d/rsyslog
 
 for n in debug kernel maillog messages secure syslog user spooler lpr daemon
 do
