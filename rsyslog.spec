@@ -13,12 +13,12 @@ Summary(pl.UTF-8):	Programy logujące zdarzenia w systemie i jądrze Linuksa
 Summary(pt_BR.UTF-8):	Registrador de log do sistema linux
 Summary(tr.UTF-8):	Linux sistem ve çekirdek kayıt süreci
 Name:		rsyslog
-Version:	3.18.1
+Version:	3.18.2
 Release:	1
 License:	GPL v3
 Group:		Daemons
 Source0:	http://download.rsyslog.com/rsyslog/%{name}-%{version}.tar.gz
-# Source0-md5:	105a989f89e87d3dd4923d2f4520750b
+# Source0-md5:	34b371f304a8c3222f89c3d0af7a2489
 Source1:	%{name}.init
 Source2:	%{name}.conf
 Source3:	%{name}.sysconfig
@@ -141,6 +141,18 @@ for Kerberos authentication.
 Pakiet rsyslog-gssapi zawiera wtyczki rsysloga obsługujące
 uwierzytelnianie GSSAPI i bezpieczne połączenia. GSSAPI jest
 powszechnie używane do uwierzytelniania Kerberos.
+
+%package devel
+Summary:        Header files for rsyslog
+Summary(pl.UTF-8):      Pliki nagłówkowe dla rsyslog
+Group:          Development/Libraries
+Requires:      %{name} = %{version}-%{release}
+
+%description devel
+Header files for rsyslog.
+
+%description devel -l pl.UTF-8
+Pliki nagłówkowe dla rsyslog.
 
 %prep
 %setup -q
@@ -293,3 +305,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/rsyslog/imgssapi.so
 %attr(755,root,root) %{_libdir}/rsyslog/omgssapi.so
 %endif
+
+%files devel
+%defattr(644,root,root,755)
+%{_libdir}/rsyslog/*.la
