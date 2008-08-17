@@ -142,18 +142,6 @@ Pakiet rsyslog-gssapi zawiera wtyczki rsysloga obsługujące
 uwierzytelnianie GSSAPI i bezpieczne połączenia. GSSAPI jest
 powszechnie używane do uwierzytelniania Kerberos.
 
-%package devel
-Summary:        Header files for rsyslog
-Summary(pl.UTF-8):      Pliki nagłówkowe dla rsyslog
-Group:          Development/Libraries
-Requires:      %{name} = %{version}-%{release}
-
-%description devel
-Header files for rsyslog.
-
-%description devel -l pl.UTF-8
-Pliki nagłówkowe dla rsyslog.
-
 %prep
 %setup -q
 
@@ -184,6 +172,11 @@ for n in debug kernel maillog messages secure syslog user spooler lpr daemon
 do
 	> $RPM_BUILD_ROOT/var/log/$n
 done
+
+%{__rm} $RPM_BUILD_ROOT%{_libdir}/rsyslog/*.la
+
+%clean
+rm -rf $RPM_BUILD_ROOT
 
 %pre
 %groupadd -P syslog -g 18 syslog
@@ -250,9 +243,6 @@ if [ -f /etc/syslog.conf.rpmsave ]; then
 	echo "Original file from package is available as /etc/syslog.conf.rpmnew"
 fi
 
-%clean
-rm -rf $RPM_BUILD_ROOT
-
 %files
 %defattr(644,root,root,755)
 %doc AUTHORS ChangeLog NEWS README
@@ -305,7 +295,3 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/rsyslog/imgssapi.so
 %attr(755,root,root) %{_libdir}/rsyslog/omgssapi.so
 %endif
-
-%files devel
-%defattr(644,root,root,755)
-%{_libdir}/rsyslog/*.la
