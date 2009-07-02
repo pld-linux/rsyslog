@@ -14,7 +14,7 @@ Summary(pt_BR.UTF-8):	Registrador de log do sistema linux
 Summary(tr.UTF-8):	Linux sistem ve çekirdek kayıt süreci
 Name:		rsyslog
 Version:	4.2.0
-Release:	1
+Release:	2
 License:	GPL v3
 Group:		Daemons
 Source0:	http://download.rsyslog.com/rsyslog/%{name}-%{version}.tar.gz
@@ -24,7 +24,7 @@ Source2:	%{name}.conf
 Source3:	%{name}.sysconfig
 Source4:	%{name}.logrotate
 URL:		http://www.rsyslog.com/
-%{?with_gssapi:BuildRequires:	krb5-devel}
+%{?with_gssapi:BuildRequires:	heimdal-devel}
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_snmp:BuildRequires:	net-snmp-devel}
 %{?with_pgsql:BuildRequires:	postgresql-devel}
