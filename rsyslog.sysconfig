@@ -1,5 +1,0 @@
-# Options to syslogd
-# syslogd options are deprecated in rsyslog v3 
-# if you want to use them, switch to compatibility mode 2 by "-c 2"
-SYSLOGD_OPTIONS="-c3 -f/etc/rsyslog.d/rsyslog.conf"
-
