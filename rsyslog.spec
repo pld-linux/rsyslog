@@ -13,18 +13,18 @@ Summary(pl.UTF-8):	Programy logujące zdarzenia w systemie i jądrze Linuksa
 Summary(pt_BR.UTF-8):	Registrador de log do sistema linux
 Summary(tr.UTF-8):	Linux sistem ve çekirdek kayıt süreci
 Name:		rsyslog
-Version:	4.1.1
+Version:	5.3.0
 Release:	1
 License:	GPL v3
 Group:		Daemons
 Source0:	http://download.rsyslog.com/rsyslog/%{name}-%{version}.tar.gz
-# Source0-md5:	fa6a69df00ac2c5baa69d4152951be18
+# Source0-md5:	b7e2014886d2af8622bd87b95627c551
 Source1:	%{name}.init
 Source2:	%{name}.conf
 Source3:	%{name}.sysconfig
 Source4:	%{name}.logrotate
 URL:		http://www.rsyslog.com/
-%{?with_gssapi:BuildRequires:	krb5-devel}
+%{?with_gssapi:BuildRequires:	heimdal-devel}
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_snmp:BuildRequires:	net-snmp-devel}
 %{?with_pgsql:BuildRequires:	postgresql-devel}
@@ -51,6 +51,7 @@ Provides:	user(syslog)
 Obsoletes:	msyslog
 Obsoletes:	sysklogd
 Obsoletes:	syslog-ng
+Obsoletes:	rsyslog5
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -266,8 +267,10 @@ fi
 %attr(755,root,root) %{_libdir}/rsyslog/lmnetstrms.so
 %attr(755,root,root) %{_libdir}/rsyslog/lmnsd_ptcp.so
 %attr(755,root,root) %{_libdir}/rsyslog/lmregexp.so
+%attr(755,root,root) %{_libdir}/rsyslog/lmstrmsrv.so
 %attr(755,root,root) %{_libdir}/rsyslog/lmtcpclt.so
 %attr(755,root,root) %{_libdir}/rsyslog/lmtcpsrv.so
+%attr(755,root,root) %{_libdir}/rsyslog/lmzlibw.so
 %attr(755,root,root) %{_libdir}/rsyslog/omtesting.so
 %{_mandir}/man5/*
 %{_mandir}/man8/*
