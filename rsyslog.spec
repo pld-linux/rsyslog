@@ -27,6 +27,7 @@ URL:		http://www.rsyslog.com/
 %{?with_gssapi:BuildRequires:	heimdal-devel}
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_snmp:BuildRequires:	net-snmp-devel}
+BuildRequires:	pkgconfig
 %{?with_pgsql:BuildRequires:	postgresql-devel}
 Requires(post):	fileutils
 Requires(post,preun):	/sbin/chkconfig
