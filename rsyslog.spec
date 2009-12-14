@@ -14,7 +14,7 @@ Summary(pt_BR.UTF-8):	Registrador de log do sistema linux
 Summary(tr.UTF-8):	Linux sistem ve çekirdek kayıt süreci
 Name:		rsyslog
 Version:	4.5.5
-Release:	2
+Release:	3
 License:	GPL v3
 Group:		Daemons
 Source0:	http://download.rsyslog.com/rsyslog/%{name}-%{version}.tar.gz
