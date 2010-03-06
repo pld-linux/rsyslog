@@ -14,7 +14,7 @@ Summary(pt_BR.UTF-8):	Registrador de log do sistema linux
 Summary(tr.UTF-8):	Linux sistem ve çekirdek kayıt süreci
 Name:		rsyslog
 Version:	4.6.1
-Release:	1
+Release:	1.1
 License:	GPL v3
 Group:		Daemons
 Source0:	http://download.rsyslog.com/rsyslog/%{name}-%{version}.tar.gz
@@ -149,6 +149,7 @@ powszechnie używane do uwierzytelniania Kerberos.
 
 %build
 %configure \
+	--enable-imfile \
 	%{?with_gssapi:--enable-gssapi-krb5} \
 	%{?with_mysql:--enable-mysql} \
 	%{?with_pgsql:--enable-pgsql} \
@@ -166,7 +167,7 @@ install -d $RPM_BUILD_ROOT/etc/{sysconfig,rc.d/init.d,logrotate.d,rsyslog.d} \
 	DESTDIR=$RPM_BUILD_ROOT
 
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/rsyslog
-install %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/rsyslog.d/rsyslog.conf
+install %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/rsyslog.conf
 install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/rsyslog
 install %{SOURCE4} $RPM_BUILD_ROOT/etc/logrotate.d/rsyslog
 
@@ -188,12 +189,12 @@ rm -rf $RPM_BUILD_ROOT
 %post
 for n in /var/log/{cron,daemon,debug,kernel,lpr,maillog,messages,secure,spooler,syslog,user}; do
 	if [ -f $n ]; then
-		chown syslog:syslog $n
+		chown root:logs $n
 		continue
 	else
 		touch $n
 		chmod 000 $n
-		chown syslog:syslog $n
+		chown root:logs $n
 		chmod 640 $n
 	fi
 done
@@ -249,14 +250,14 @@ fi
 %defattr(644,root,root,755)
 %doc AUTHORS ChangeLog NEWS README
 %dir %{_sysconfdir}/rsyslog.d
-%attr(640,root,syslog) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/rsyslog.d/rsyslog.conf
+%attr(640,root,syslog) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/rsyslog.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/rsyslog
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/rsyslog
 %attr(754,root,root) /etc/rc.d/init.d/rsyslog
 %attr(640,root,root) %ghost /var/log/*
 %attr(755,root,root) %{_sbindir}/rsyslogd
 %dir %{_libdir}/rsyslog
-%attr(755,root,root) %{_libdir}/rsyslog/omsnmp.so
+%attr(755,root,root) %{_libdir}/rsyslog/imfile.so
 %attr(755,root,root) %{_libdir}/rsyslog/imklog.so
 %attr(755,root,root) %{_libdir}/rsyslog/immark.so
 %attr(755,root,root) %{_libdir}/rsyslog/imtcp.so
@@ -271,6 +272,7 @@ fi
 %attr(755,root,root) %{_libdir}/rsyslog/lmtcpclt.so
 %attr(755,root,root) %{_libdir}/rsyslog/lmtcpsrv.so
 %attr(755,root,root) %{_libdir}/rsyslog/lmzlibw.so
+%attr(755,root,root) %{_libdir}/rsyslog/omsnmp.so
 %attr(755,root,root) %{_libdir}/rsyslog/omtesting.so
 %{_mandir}/man5/*
 %{_mandir}/man8/*
