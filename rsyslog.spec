@@ -19,9 +19,8 @@ Group:		Daemons
 Source0:	http://www.rsyslog.com/files/download/rsyslog/%{name}-%{version}.tar.gz
 # Source0-md5:	9fefe1e486084446ffeff728e53d5001
 Source1:	%{name}.init
-Source2:	%{name}.conf
-Source3:	%{name}.sysconfig
-Source4:	%{name}.logrotate
+Source2:	%{name}.sysconfig
+Source3:	%{name}.logrotate
 URL:		http://www.rsyslog.com/
 %{?with_gssapi:BuildRequires:	heimdal-devel}
 %{?with_mysql:BuildRequires:	mysql-devel}
@@ -169,9 +168,10 @@ install -d $RPM_BUILD_ROOT/etc/{sysconfig,rc.d/init.d,logrotate.d,rsyslog.d} \
 	DESTDIR=$RPM_BUILD_ROOT
 
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/rsyslog
-install %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/rsyslog.d/rsyslog.conf
-install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/rsyslog
-install %{SOURCE4} $RPM_BUILD_ROOT/etc/logrotate.d/rsyslog
+install %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/rsyslog
+install %{SOURCE3} $RPM_BUILD_ROOT/etc/logrotate.d/rsyslog
+
+cp -a %{name}.conf $RPM_BUILD_ROOT%{_sysconfdir}/rsyslog.d/rsyslog.conf
 
 for n in debug kernel maillog messages secure syslog user spooler lpr daemon
 do
