@@ -50,7 +50,6 @@ Provides:	group(syslog)
 Provides:	syslogdaemon
 Provides:	user(syslog)
 Obsoletes:	msyslog
-Obsoletes:	rsyslog
 Obsoletes:	rsyslog5
 Obsoletes:	sysklogd
 Obsoletes:	syslog-ng
