@@ -3,7 +3,7 @@
 # rsyslog        Starts rsyslogd/rklogd.
 #
 #
-# chkconfig: - 12 88
+# chkconfig: 2345 12 88
 # description: Syslog is the facility by which many daemons use to log \
 # messages to various system log files.  It is a good idea to always \
 # run rsyslog.
