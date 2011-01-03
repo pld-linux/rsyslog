@@ -12,17 +12,19 @@ Summary(pl.UTF-8):	Programy logujące zdarzenia w systemie i jądrze Linuksa
 Summary(pt_BR.UTF-8):	Registrador de log do sistema linux
 Summary(tr.UTF-8):	Linux sistem ve çekirdek kayıt süreci
 Name:		rsyslog
-Version:	6.1.1
+Version:	6.1.2
 Release:	1
 License:	GPL v3+
 Group:		Daemons
 Source0:	http://www.rsyslog.com/files/download/rsyslog/%{name}-%{version}.tar.gz
-# Source0-md5:	0965c52e5aac4e668b53ba1642fd0b9c
+# Source0-md5:	82a0ff460663fcfbfb6fccce30e0d7e8
 Source1:	%{name}.init
 Source2:	%{name}.sysconfig
 Source3:	%{name}.logrotate
 URL:		http://www.rsyslog.com/
 %{?with_gssapi:BuildRequires:	heimdal-devel}
+BuildRequires:	libee-devel
+BuildRequires:	libestr-devel
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_snmp:BuildRequires:	net-snmp-devel}
 BuildRequires:	pkgconfig
@@ -249,7 +251,7 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%doc AUTHORS ChangeLog NEWS README
+%doc AUTHORS ChangeLog README
 %dir %{_sysconfdir}/rsyslog.d
 %attr(640,root,syslog) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/rsyslog.d/rsyslog.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/rsyslog
