@@ -272,6 +272,7 @@ fi
 %attr(755,root,root) %{_libdir}/rsyslog/lmtcpclt.so
 %attr(755,root,root) %{_libdir}/rsyslog/lmtcpsrv.so
 %attr(755,root,root) %{_libdir}/rsyslog/lmzlibw.so
+%attr(755,root,root) %{_libdir}/rsyslog/omruleset.so
 %attr(755,root,root) %{_libdir}/rsyslog/omsnmp.so
 %attr(755,root,root) %{_libdir}/rsyslog/omtesting.so
 %{_mandir}/man5/*
