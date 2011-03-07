@@ -50,77 +50,81 @@ checkconfig() {
 }
 
 start() {
-	if [ ! -f /var/lock/subsys/rsyslog ]; then
-		umask 077
-		msg_starting rsyslogd
-		daemon rsyslogd $SYSLOGD_OPTIONS
-		RETVAL=$?
-		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/rsyslog
-	else
+	if [ -f /var/lock/subsys/rsyslog ]; then
 		msg_already_running rsyslogd
+		return
 	fi
+
+	umask 077
+	msg_starting rsyslogd
+	daemon rsyslogd $SYSLOGD_OPTIONS
+	RETVAL=$?
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/rsyslog
 }
 
 stop() {
-	if [ -f /var/lock/subsys/rsyslog ]; then
-		msg_stopping rsyslogd
-		killproc rsyslogd
-		rm -f /var/lock/subsys/rsyslog
-	else
+	if [ ! -f /var/lock/subsys/rsyslog ]; then
 		msg_not_running rsyslogd
+		return
 	fi
+
+	msg_stopping rsyslogd
+	killproc rsyslogd
+	rm -f /var/lock/subsys/rsyslog
 }
 
-reload()  {
-	if [ -f /var/lock/subsys/rsyslog ]; then
-		msg_reloading rsyslogd
-		killproc --pidfile /var/run/syslogd.pid rsyslogd -HUP
-		RETVAL=$?
-	else
+reload() {
+	if [ ! -f /var/lock/subsys/rsyslog ]; then
 		msg_not_running rsyslogd
 		RETVAL=7
+		return
 	fi
+
+	msg_reloading rsyslogd
+	killproc --pidfile /var/run/syslogd.pid rsyslogd -HUP
+	RETVAL=$?
 }
 
 condrestart() {
-	if [ -f /var/lock/subsys/rsyslog ]; then
-		stop
-		start
-	else
+	if [ ! -f /var/lock/subsys/rsyslog ]; then
 		msg_not_running rsyslogd
 		RETVAL=$1
+		return
 	fi
+
+	stop
+	start
 }
 
 RETVAL=0
 case "$1" in
-	start)
-		checkconfig
-		start
-		;;
-	stop)
-		stop
-		;;
-	restart)
-		checkconfig
-		stop
-		start
-		;;
-	try-restart)
-		condrestart 0
-		;;
-	reload|force-reload)
-		reload
-		;;
-	checkconfig|configtest)
-		checkconfig 1
-		;;
-	status)
-		status rsyslogd
-		;;
-	*)
-		msg_usage "$0 {start|stop|restart|try-restart|reload|force-reload|checkconfig|status}"
-		exit 3
+  start)
+	checkconfig
+	start
+	;;
+  stop)
+	stop
+	;;
+  restart)
+	checkconfig
+	stop
+	start
+	;;
+  try-restart)
+	condrestart 0
+	;;
+  reload|force-reload)
+	reload
+	;;
+  checkconfig|configtest)
+	checkconfig 1
+	;;
+  status)
+	status rsyslogd
+	;;
+  *)
+	msg_usage "$0 {start|stop|restart|try-restart|reload|force-reload|checkconfig|status}"
+	exit 3
 esac
 
 exit $RETVAL
