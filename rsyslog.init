@@ -19,6 +19,36 @@ if [ -f /etc/sysconfig/rsyslog ] ; then
 	. /etc/sysconfig/rsyslog
 fi
 
+configtest() {
+	rsyslogd $SYSLOGD_OPTIONS -N1 -i /var/run/rsyslogd-syntaxcheck.pid
+	return $?
+}
+
+checkconfig() {
+	local details=${1:-0}
+
+	if [ $details = 1 ]; then
+		show "Checking %s configuration" "rsyslog"; busy
+		local out
+		out=$(configtest 2>&1)
+		RETVAL=$?
+		if [ $RETVAL = 0 ]; then
+			ok
+		else
+			fail
+		fi
+		[ "$out" ] && echo >&2 "$out"
+	else
+		configtest >/dev/null 2>&1
+		RETVAL=$?
+		if [ $RETVAL != 0 ]; then
+			show "Checking %s configuration" "rsyslog"; fail
+			nls 'Configuration test failed. See details with %s "checkconfig"' $0
+			exit $RETVAL
+		fi
+	fi
+}
+
 start() {
 	if [ ! -f /var/lock/subsys/rsyslog ]; then
 		umask 077
@@ -64,28 +94,33 @@ condrestart() {
 
 RETVAL=0
 case "$1" in
-  start)
-        start
-        ;;
-  stop)
-        stop
-        ;;
-  restart)
-        stop
-	start
-        ;;
-  try-restart)
-	condrestart 0
-	;;
-  reload|force-reload)
-	reload
-	;;
-  status)
-        status rsyslogd
-        ;;
-  *)
-        msg_usage "$0 {start|stop|restart|try-restart|reload|force-reload|status}"
-        exit 3
+	start)
+		checkconfig
+		start
+		;;
+	stop)
+		stop
+		;;
+	restart)
+		checkconfig
+		stop
+		start
+		;;
+	try-restart)
+		condrestart 0
+		;;
+	reload|force-reload)
+		reload
+		;;
+	checkconfig|configtest)
+		checkconfig 1
+		;;
+	status)
+		status rsyslogd
+		;;
+	*)
+		msg_usage "$0 {start|stop|restart|try-restart|reload|force-reload|checkconfig|status}"
+		exit 3
 esac
 
 exit $RETVAL
