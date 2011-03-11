@@ -3,7 +3,7 @@
 # rsyslog        Starts rsyslogd/rklogd.
 #
 #
-# chkconfig: - 12 88
+# chkconfig: 2345 12 88
 # description: Syslog is the facility by which many daemons use to log \
 # messages to various system log files.  It is a good idea to always \
 # run rsyslog.
@@ -19,73 +19,112 @@ if [ -f /etc/sysconfig/rsyslog ] ; then
 	. /etc/sysconfig/rsyslog
 fi
 
-start() {
-	if [ ! -f /var/lock/subsys/rsyslog ]; then
-		umask 077
-		msg_starting rsyslogd
-		daemon rsyslogd $SYSLOGD_OPTIONS
+configtest() {
+	rsyslogd $SYSLOGD_OPTIONS -N1 -i /var/run/rsyslogd-syntaxcheck.pid
+	return $?
+}
+
+checkconfig() {
+	local details=${1:-0}
+
+	if [ $details = 1 ]; then
+		show "Checking %s configuration" "rsyslog"; busy
+		local out
+		out=$(configtest 2>&1)
 		RETVAL=$?
-		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/rsyslog
+		if [ $RETVAL = 0 ]; then
+			ok
+		else
+			fail
+		fi
+		[ "$out" ] && echo >&2 "$out"
 	else
-		msg_already_running rsyslogd
+		configtest >/dev/null 2>&1
+		RETVAL=$?
+		if [ $RETVAL != 0 ]; then
+			show "Checking %s configuration" "rsyslog"; fail
+			nls 'Configuration test failed. See details with %s "checkconfig"' $0
+			exit $RETVAL
+		fi
 	fi
+}
+
+start() {
+	if [ -f /var/lock/subsys/rsyslog ]; then
+		msg_already_running rsyslogd
+		return
+	fi
+
+	umask 077
+	msg_starting rsyslogd
+	daemon rsyslogd $SYSLOGD_OPTIONS
+	RETVAL=$?
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/rsyslog
 }
 
 stop() {
-	if [ -f /var/lock/subsys/rsyslog ]; then
-		msg_stopping rsyslogd
-		killproc rsyslogd
-		rm -f /var/lock/subsys/rsyslog
-	else
+	if [ ! -f /var/lock/subsys/rsyslog ]; then
 		msg_not_running rsyslogd
+		return
 	fi
+
+	msg_stopping rsyslogd
+	killproc rsyslogd
+	rm -f /var/lock/subsys/rsyslog
 }
 
-reload()  {
-	if [ -f /var/lock/subsys/rsyslog ]; then
-		msg_reloading rsyslogd
-		killproc --pidfile /var/run/syslogd.pid rsyslogd -HUP
-		RETVAL=$?
-	else
+reload() {
+	if [ ! -f /var/lock/subsys/rsyslog ]; then
 		msg_not_running rsyslogd
 		RETVAL=7
+		return
 	fi
+
+	msg_reloading rsyslogd
+	killproc --pidfile /var/run/syslogd.pid rsyslogd -HUP
+	RETVAL=$?
 }
 
 condrestart() {
-	if [ -f /var/lock/subsys/rsyslog ]; then
-		stop
-		start
-	else
+	if [ ! -f /var/lock/subsys/rsyslog ]; then
 		msg_not_running rsyslogd
 		RETVAL=$1
+		return
 	fi
+
+	stop
+	start
 }
 
 RETVAL=0
 case "$1" in
   start)
-        start
-        ;;
-  stop)
-        stop
-        ;;
-  restart)
-        stop
+	checkconfig
 	start
-        ;;
+	;;
+  stop)
+	stop
+	;;
+  restart)
+	checkconfig
+	stop
+	start
+	;;
   try-restart)
 	condrestart 0
 	;;
   reload|force-reload)
 	reload
 	;;
+  checkconfig|configtest)
+	checkconfig 1
+	;;
   status)
-        status rsyslogd
-        ;;
+	status rsyslogd
+	;;
   *)
-        msg_usage "$0 {start|stop|restart|try-restart|reload|force-reload|status}"
-        exit 3
+	msg_usage "$0 {start|stop|restart|try-restart|reload|force-reload|checkconfig|status}"
+	exit 3
 esac
 
 exit $RETVAL
