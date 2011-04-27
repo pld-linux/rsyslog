@@ -12,19 +12,20 @@ Summary(pl.UTF-8):	Programy logujące zdarzenia w systemie i jądrze Linuksa
 Summary(pt_BR.UTF-8):	Registrador de log do sistema linux
 Summary(tr.UTF-8):	Linux sistem ve çekirdek kayıt süreci
 Name:		rsyslog
-Version:	6.1.5
+Version:	6.1.7
 Release:	1
 License:	GPL v3+
 Group:		Daemons
 Source0:	http://www.rsyslog.com/files/download/rsyslog/%{name}-%{version}.tar.gz
-# Source0-md5:	f031a18b19fda05d5eea8951ccb1a356
+# Source0-md5:	7f14d4fb992c3cc81fd61e561298bd46
 Source1:	%{name}.init
 Source2:	%{name}.sysconfig
 Source3:	%{name}.logrotate
+Patch0:		%{name}-link.patch
 URL:		http://www.rsyslog.com/
 %{?with_gssapi:BuildRequires:	heimdal-devel}
-BuildRequires:	libee-devel
-BuildRequires:	libestr-devel
+BuildRequires:	libee-devel >= 0.3.1
+BuildRequires:	libestr-devel >= 0.1.0
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_snmp:BuildRequires:	net-snmp-devel}
 BuildRequires:	pkgconfig
@@ -149,6 +150,7 @@ powszechnie używane do uwierzytelniania Kerberos.
 
 %prep
 %setup -q
+%patch0 -p1
 
 %build
 %configure \
