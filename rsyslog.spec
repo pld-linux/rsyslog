@@ -263,7 +263,6 @@ fi
 %attr(755,root,root) %{_libdir}/rsyslog/imtcp.so
 %attr(755,root,root) %{_libdir}/rsyslog/imudp.so
 %attr(755,root,root) %{_libdir}/rsyslog/imuxsock.so
-%attr(755,root,root) %{_libdir}/rsyslog/lmgssutil.so
 %attr(755,root,root) %{_libdir}/rsyslog/lmnet.so
 %attr(755,root,root) %{_libdir}/rsyslog/lmnetstrms.so
 %attr(755,root,root) %{_libdir}/rsyslog/lmnsd_ptcp.so
@@ -302,5 +301,6 @@ fi
 %files gssapi
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/rsyslog/imgssapi.so
+%attr(755,root,root) %{_libdir}/rsyslog/lmgssutil.so
 %attr(755,root,root) %{_libdir}/rsyslog/omgssapi.so
 %endif
