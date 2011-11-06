@@ -1,10 +1,14 @@
+# TODO
+# - consider moving snmp, db, ... libs to subpackage, so main pkg would be without extra deps
+# - without gssapi still generates dep on heimdal-libs
+# - klogd? remove if this daemon does not have standalone klogd daemon at all
 #
 # Conditional build:
 %bcond_without	gssapi		# GSSAPI Kerberos 5 support
-%bcond_without	mysql		# MySQL database support 
+%bcond_without	mysql		# MySQL database support
 %bcond_without	pgsql		# PostgreSQL database support
 %bcond_without	snmp		# SNMP support
-#
+
 Summary:	Linux system and kernel logger
 Summary(de.UTF-8):	Linux-System- und Kerner-Logger
 Summary(es.UTF-8):	Registrador de log del sistema linux
@@ -166,13 +170,12 @@ install -d $RPM_BUILD_ROOT/etc/{sysconfig,rc.d/init.d,logrotate.d,rsyslog.d} \
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 
-install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/rsyslog
-install %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/rsyslog.conf
-install %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/rsyslog
-install %{SOURCE4} $RPM_BUILD_ROOT/etc/logrotate.d/rsyslog
+install -p %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/rsyslog
+cp -p %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/rsyslog.conf
+cp -p %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/rsyslog
+cp -p %{SOURCE4} $RPM_BUILD_ROOT/etc/logrotate.d/rsyslog
 
-for n in debug kernel maillog messages secure syslog user spooler lpr daemon
-do
+for n in debug kernel maillog messages secure syslog user spooler lpr daemon; do
 	> $RPM_BUILD_ROOT/var/log/$n
 done
 
