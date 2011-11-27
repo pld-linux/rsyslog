@@ -1,9 +1,8 @@
 # TODO
-# - consider moving snmp, db, ... libs to subpackage, so main pkg would be without extra deps
 # - without gssapi still generates dep on heimdal-libs
-# - klogd? remove if this daemon does not have standalone klogd daemon at all
 #
 # Conditional build:
+%bcond_without	dbi		# database support via libdbi
 %bcond_without	gssapi		# GSSAPI Kerberos 5 support
 %bcond_without	mysql		# MySQL database support
 %bcond_without	pgsql		# PostgreSQL database support
@@ -17,22 +16,25 @@ Summary(pl.UTF-8):	Programy logujące zdarzenia w systemie i jądrze Linuksa
 Summary(pt_BR.UTF-8):	Registrador de log do sistema linux
 Summary(tr.UTF-8):	Linux sistem ve çekirdek kayıt süreci
 Name:		rsyslog
-Version:	5.6.5
-Release:	2
+Version:	5.8.6
+Release:	1
 License:	GPL v3+
 Group:		Daemons
 Source0:	http://www.rsyslog.com/files/download/rsyslog/%{name}-%{version}.tar.gz
-# Source0-md5:	ab675f5856a35f6aa0cd6ab057443ead
+# Source0-md5:	c46db0496066b82faf735bd4222208d7
 Source1:	%{name}.init
 Source2:	%{name}.conf
 Source3:	%{name}.sysconfig
 Source4:	%{name}.logrotate
+Patch0:		rsyslog-systemd.patch
 URL:		http://www.rsyslog.com/
 %{?with_gssapi:BuildRequires:	heimdal-devel}
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_snmp:BuildRequires:	net-snmp-devel}
 BuildRequires:	pkgconfig
 %{?with_pgsql:BuildRequires:	postgresql-devel}
+BuildRequires:	libnet-devel
+BuildRequires:	gnutls-devel
 Requires(post):	fileutils
 Requires(post,preun):	/sbin/chkconfig
 Requires(post,preun):	rc-scripts >= 0.2.0
@@ -77,32 +79,13 @@ odpowiednim do produkcyjnych, szyfrowanych łańcuchów przekazywania
 logów, a jednocześnie jest przy tym łatwy do skonfigurowania dla
 początkującego użytkownika.
 
-%package klogd
-Summary:	Linux kernel logger
-Summary(de.UTF-8):	Linux-Kerner-Logger
-Summary(pl.UTF-8):	Program logujący zdarzenia w jądrze Linuksa
+%package systemd
+Summary:	systemd units for rsyslog
 Group:		Daemons
-Requires(post,preun):	/sbin/chkconfig
-Requires(post,preun):	rc-scripts >= 0.2.0
-Requires(postun):	/usr/sbin/groupdel
-Requires(postun):	/usr/sbin/userdel
-Requires(pre):	/bin/id
-Requires(pre):	/usr/bin/getgid
-Requires(pre):	/usr/lib/rpm/user_group.sh
-Requires(pre):	/usr/sbin/groupadd
-Requires(pre):	/usr/sbin/useradd
-Requires(pre):	/usr/sbin/usermod
-Provides:	group(syslog)
-Provides:	user(syslog)
-Obsoletes:	sysklogd
+Requires:	%{name} = %{version}-%{release}
 
-%description klogd
-This is the Linux kernel logging program. It is run as a daemon
-(background process) to log messages from kernel.
-
-%description klogd -l pl.UTF-8
-Pakiet ten zawiera program, który jest uruchamiany jako demon i służy
-do logowania komunikatów jądra Linuksa.
+%description systemd
+systemd units for rsyslog.
 
 %package mysql
 Summary:	MySQL support for rsyslog
@@ -148,16 +131,79 @@ Pakiet rsyslog-gssapi zawiera wtyczki rsysloga obsługujące
 uwierzytelnianie GSSAPI i bezpieczne połączenia. GSSAPI jest
 powszechnie używane do uwierzytelniania Kerberos.
 
+%package dbi
+Summary:	libdbi database support for rsyslog
+Group:		Daemons
+Requires:	%{name} = %{version}-%{release}
+
+%description dbi
+This module supports a large number of database systems via
+libdbi. Libdbi abstracts the database layer and provides drivers for
+many systems. Drivers are available via the libdbi-drivers project.
+
+%package udpspoof
+Summary:	Provides the omudpspoof module
+Group:		Daemons
+Requires:	%{name} = %{version}-%{release}
+
+%description udpspoof
+This module is similar to the regular UDP forwarder, but permits to
+spoof the sender address. Also, it enables to circle through a number
+of source ports.
+
+%package snmp
+Summary:	SNMP protocol support for rsyslog
+Group:		Daemons
+Requires:	%{name} = %{version}-%{release}
+
+%description snmp
+The rsyslog-snmp package contains the rsyslog plugin that provides the
+ability to send syslog messages as SNMPv1 and SNMPv2c traps.
+
+%package gnutls
+Summary:	TLS protocol support for rsyslog
+Group:		Daemons
+Requires:	%{name} = %{version}-%{release}
+
+%description gnutls
+The rsyslog-gnutls package contains the rsyslog plugins that provide the
+ability to receive syslog messages via upcoming syslog-transport-tls
+IETF standard protocol.
+
 %prep
 %setup -q
+%patch0 -p1
 
 %build
 %configure \
+	--disable-silent-rules \
+	--enable-gnutls \
+	--enable-imdiag \
 	--enable-imfile \
+	--enable-impstats \
+	--enable-imptcp \
+	--enable-imtemplate \
+	--enable-mail \
+	--enable-mmsnmptrapd \
+	--enable-omdbalerting \
+	--enable-omprog \
+	--enable-omstdout \
+	--enable-omtemplate \
+	--enable-omudpspoof \
+	--enable-omuxsock \
+	--enable-pmaixforwardedfrom \
+	--enable-pmcisconames \
+	--enable-pmlastmsg \
+	--enable-pmrfc3164sd \
+	--enable-pmsnare \
+	--enable-smcustbindcdr \
+	--enable-unlimited-select \
 	%{?with_gssapi:--enable-gssapi-krb5} \
 	%{?with_mysql:--enable-mysql} \
 	%{?with_pgsql:--enable-pgsql} \
-	%{?with_snmp:--enable-snmp}
+	%{?with_snmp:--enable-snmp} \
+	%{?with_dbi:--enable-libdbi} \
+	--with-systemdsystemunitdir=/lib/systemd/system
 
 %{__make}
 
@@ -218,27 +264,6 @@ if [ "$1" = "0" ]; then
 	%groupremove syslog
 fi
 
-%pre klogd
-%groupadd -P klogd -g 18 syslog
-%useradd -P klogd -u 18 -g syslog -c "Syslog User" syslog
-%addusertogroup syslog logs
-
-%post klogd
-/sbin/chkconfig --add %{name}-klogd
-%service %{name}-klogd restart "kernel logger daemon"
-
-%preun klogd
-if [ "$1" = "0" ]; then
-	%service %{name}-klogd stop
-	/sbin/chkconfig --del %{name}-klogd
-fi
-
-%postun klogd
-if [ "$1" = "0" ]; then
-	%userremove syslog
-	%groupremove syslog
-fi
-
 %triggerpostun -- inetutils-syslogd
 /sbin/chkconfig --del syslog
 /sbin/chkconfig --add syslog
@@ -275,16 +300,30 @@ fi
 %attr(755,root,root) %{_libdir}/rsyslog/lmtcpsrv.so
 %attr(755,root,root) %{_libdir}/rsyslog/lmzlibw.so
 %attr(755,root,root) %{_libdir}/rsyslog/omruleset.so
-%attr(755,root,root) %{_libdir}/rsyslog/omsnmp.so
 %attr(755,root,root) %{_libdir}/rsyslog/omtesting.so
+%attr(755,root,root) %{_libdir}/rsyslog/imdiag.so
+%attr(755,root,root) %{_libdir}/rsyslog/impstats.so
+%attr(755,root,root) %{_libdir}/rsyslog/imptcp.so
+%attr(755,root,root) %{_libdir}/rsyslog/imtemplate.so
+%attr(755,root,root) %{_libdir}/rsyslog/mmsnmptrapd.so
+%attr(755,root,root) %{_libdir}/rsyslog/omdbalerting.so
+%attr(755,root,root) %{_libdir}/rsyslog/ommail.so
+%attr(755,root,root) %{_libdir}/rsyslog/omprog.so
+%attr(755,root,root) %{_libdir}/rsyslog/omstdout.so
+%attr(755,root,root) %{_libdir}/rsyslog/omtemplate.so
+%attr(755,root,root) %{_libdir}/rsyslog/omuxsock.so
+%attr(755,root,root) %{_libdir}/rsyslog/pmaixforwardedfrom.so
+%attr(755,root,root) %{_libdir}/rsyslog/pmcisconames.so
+%attr(755,root,root) %{_libdir}/rsyslog/pmlastmsg.so
+%attr(755,root,root) %{_libdir}/rsyslog/pmrfc3164sd.so
+%attr(755,root,root) %{_libdir}/rsyslog/pmsnare.so
+%attr(755,root,root) %{_libdir}/rsyslog/sm_cust_bindcdr.so
 %{_mandir}/man5/*
 %{_mandir}/man8/*
 
-#%files klogd
-#%defattr(644,root,root,755)
-#%attr(754,root,root) /etc/rc.d/init.d/klogd
-#%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/klogd
-#%attr(755,root,root) %{_sbindir}/klogd
+%files systemd
+%defattr(644,root,root,755)
+/lib/systemd/system/rsyslog.service
 
 %if %{with mysql}
 %files mysql
@@ -307,3 +346,23 @@ fi
 %attr(755,root,root) %{_libdir}/rsyslog/lmgssutil.so
 %attr(755,root,root) %{_libdir}/rsyslog/omgssapi.so
 %endif
+
+%if %{with dbi}
+%files dbi
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/rsyslog/omlibdbi.so
+%endif
+
+%files udpspoof
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/rsyslog/omudpspoof.so
+
+%if %{with snmp}
+%files snmp
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/rsyslog/omsnmp.so
+%endif
+
+%files gnutls
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/rsyslog/lmnsd_gtls.so
