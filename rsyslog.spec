@@ -17,7 +17,7 @@ Summary(pt_BR.UTF-8):	Registrador de log do sistema linux
 Summary(tr.UTF-8):	Linux sistem ve çekirdek kayıt süreci
 Name:		rsyslog
 Version:	5.8.6
-Release:	1
+Release:	2
 License:	GPL v3+
 Group:		Daemons
 Source0:	http://www.rsyslog.com/files/download/rsyslog/%{name}-%{version}.tar.gz
@@ -35,6 +35,7 @@ BuildRequires:	pkgconfig
 %{?with_pgsql:BuildRequires:	postgresql-devel}
 BuildRequires:	libnet-devel
 BuildRequires:	gnutls-devel
+BuildRequires:	rpmbuild(macros) >= 1.626
 Requires(post):	fileutils
 Requires(post,preun):	/sbin/chkconfig
 Requires(post,preun):	rc-scripts >= 0.2.0
@@ -83,6 +84,7 @@ początkującego użytkownika.
 Summary:	systemd units for rsyslog
 Group:		Daemons
 Requires:	%{name} = %{version}-%{release}
+Requires:	systemd-units >= 37-0.10
 
 %description systemd
 systemd units for rsyslog.
@@ -273,6 +275,15 @@ if [ -f /etc/syslog.conf.rpmsave ]; then
 	echo "Moved /etc/syslog.conf.rpmsave to /etc/syslog.conf"
 	echo "Original file from package is available as /etc/syslog.conf.rpmnew"
 fi
+
+%post systemd
+%systemd_post rsyslog.service
+
+%preun systemd
+%systemd_preun rsyslog.service
+
+%postun systemd
+%systemd_reload
 
 %files
 %defattr(644,root,root,755)
