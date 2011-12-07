@@ -252,7 +252,6 @@ done
 
 /sbin/chkconfig --add %{name}
 %service rsyslog restart "%{name} daemon"
-%service -q %{name}-klogd restart
 
 %preun
 if [ "$1" = "0" ]; then
