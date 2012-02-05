@@ -17,7 +17,7 @@ Summary(pt_BR.UTF-8):	Registrador de log do sistema linux
 Summary(tr.UTF-8):	Linux sistem ve çekirdek kayıt süreci
 Name:		rsyslog
 Version:	5.8.6
-Release:	3
+Release:	4
 License:	GPL v3+
 Group:		Daemons
 Source0:	http://www.rsyslog.com/files/download/rsyslog/%{name}-%{version}.tar.gz
@@ -53,7 +53,10 @@ Requires(triggerpostun):	sed >= 4.0
 # Requires:	klogd
 Requires:	logrotate >= 3.2-3
 Requires:	psmisc >= 20.1
+Requires:	systemd-units >= 37-0.10
 Provides:	group(syslog)
+Provides:	service(klogd)
+Provides:	service(syslog)
 Provides:	syslogdaemon
 Provides:	user(syslog)
 Obsoletes:	msyslog
@@ -79,17 +82,6 @@ używany jako jego zamiennik. Jego zaawansowane możliwości czynią go
 odpowiednim do produkcyjnych, szyfrowanych łańcuchów przekazywania
 logów, a jednocześnie jest przy tym łatwy do skonfigurowania dla
 początkującego użytkownika.
-
-%package systemd
-Summary:	systemd units for rsyslog
-Group:		Daemons
-Requires:	%{name} = %{version}-%{release}
-Requires:	systemd-units >= 37-0.10
-Provides:	service(klogd)
-Provides:	service(syslog)
-
-%description systemd
-systemd units for rsyslog.
 
 %package mysql
 Summary:	MySQL support for rsyslog
@@ -255,17 +247,24 @@ done
 /sbin/chkconfig --add %{name}
 %service rsyslog restart "%{name} daemon"
 
+%systemd_post rsyslog.service
+
 %preun
 if [ "$1" = "0" ]; then
 	%service %{name} stop
 	/sbin/chkconfig --del %{name}
 fi
+%systemd_preun rsyslog.service
 
 %postun
 if [ "$1" = "0" ]; then
 	%userremove syslog
 	%groupremove syslog
 fi
+%systemd_reload
+
+%triggerpostun -- %{name} < 5.8.6-4
+%systemd_trigger rsyslog.service
 
 %triggerpostun -- inetutils-syslogd
 /sbin/chkconfig --del syslog
@@ -277,15 +276,6 @@ if [ -f /etc/syslog.conf.rpmsave ]; then
 	echo "Original file from package is available as /etc/syslog.conf.rpmnew"
 fi
 
-%post systemd
-%systemd_post rsyslog.service
-
-%preun systemd
-%systemd_preun rsyslog.service
-
-%postun systemd
-%systemd_reload
-
 %files
 %defattr(644,root,root,755)
 %doc AUTHORS ChangeLog NEWS README
@@ -295,6 +285,7 @@ fi
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/rsyslog
 %attr(754,root,root) /etc/rc.d/init.d/rsyslog
 %attr(640,root,root) %ghost /var/log/*
+/lib/systemd/system/rsyslog.service
 %attr(755,root,root) %{_sbindir}/rsyslogd
 %dir %{_libdir}/rsyslog
 %attr(755,root,root) %{_libdir}/rsyslog/imfile.so
@@ -332,10 +323,6 @@ fi
 %attr(755,root,root) %{_libdir}/rsyslog/sm_cust_bindcdr.so
 %{_mandir}/man5/*
 %{_mandir}/man8/*
-
-%files systemd
-%defattr(644,root,root,755)
-/lib/systemd/system/rsyslog.service
 
 %if %{with mysql}
 %files mysql
