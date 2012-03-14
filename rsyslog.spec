@@ -17,7 +17,7 @@ Summary(pt_BR.UTF-8):	Registrador de log do sistema linux
 Summary(tr.UTF-8):	Linux sistem ve çekirdek kayıt süreci
 Name:		rsyslog
 Version:	5.8.6
-Release:	5
+Release:	65
 License:	GPL v3+
 Group:		Daemons
 Source0:	http://www.rsyslog.com/files/download/rsyslog/%{name}-%{version}.tar.gz
@@ -249,6 +249,7 @@ done
 %service rsyslog restart "%{name} daemon"
 
 %systemd_post rsyslog.service
+ln -sf /lib/systemd/system/rsyslog.service /etc/systemd/system/syslog.service || :
 
 %preun
 if [ "$1" = "0" ]; then
