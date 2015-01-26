@@ -29,6 +29,7 @@ Source4:	%{name}.logrotate
 Patch0:		rsyslog-systemd.patch
 URL:		http://www.rsyslog.com/
 %{?with_gssapi:BuildRequires:	heimdal-devel}
+BuildRequires:	libdbi-devel
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_snmp:BuildRequires:	net-snmp-devel}
 BuildRequires:	pkgconfig
