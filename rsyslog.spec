@@ -17,7 +17,7 @@ Summary(pt_BR.UTF-8):	Registrador de log do sistema linux
 Summary(tr.UTF-8):	Linux sistem ve çekirdek kayıt süreci
 Name:		rsyslog
 Version:	5.10.1
-Release:	2
+Release:	3
 License:	GPL v3+
 Group:		Daemons
 Source0:	http://www.rsyslog.com/files/download/rsyslog/%{name}-%{version}.tar.gz
@@ -220,7 +220,7 @@ cp -p %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/rsyslog.conf
 cp -p %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/rsyslog
 cp -p %{SOURCE4} $RPM_BUILD_ROOT/etc/logrotate.d/rsyslog
 
-for n in debug kernel maillog messages secure syslog user spooler lpr daemon; do
+for n in cron daemon debug kernel lpr maillog messages secure spooler syslog user; do
 	> $RPM_BUILD_ROOT/var/log/$n
 done
 
