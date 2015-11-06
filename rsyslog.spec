@@ -17,7 +17,7 @@ Summary(pt_BR.UTF-8):	Registrador de log do sistema linux
 Summary(tr.UTF-8):	Linux sistem ve çekirdek kayıt süreci
 Name:		rsyslog
 Version:	5.10.1
-Release:	3
+Release:	4
 License:	GPL v3+
 Group:		Daemons
 Source0:	http://www.rsyslog.com/files/download/rsyslog/%{name}-%{version}.tar.gz
@@ -65,6 +65,8 @@ Obsoletes:	msyslog
 Obsoletes:	rsyslog-systemd
 Obsoletes:	sysklogd
 Obsoletes:	syslog-ng
+Conflicts:	cronie < 1.5.0-3
+Conflicts:	fcron < 3.1.2-5
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -288,7 +290,7 @@ fi
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/rsyslog
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/rsyslog
 %attr(754,root,root) /etc/rc.d/init.d/rsyslog
-%attr(640,root,root) %ghost /var/log/*
+%attr(640,root,logs) %ghost /var/log/*
 /lib/systemd/system/rsyslog.service
 %attr(755,root,root) %{_sbindir}/rsyslogd
 %dir %{_libdir}/rsyslog
