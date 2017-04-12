@@ -16,12 +16,12 @@ Summary(pl.UTF-8):	Programy logujące zdarzenia w systemie i jądrze Linuksa
 Summary(pt_BR.UTF-8):	Registrador de log do sistema linux
 Summary(tr.UTF-8):	Linux sistem ve çekirdek kayıt süreci
 Name:		rsyslog
-Version:	5.10.1
-Release:	4
+Version:	8.26.0
+Release:	1
 License:	GPL v3+
 Group:		Daemons
 Source0:	http://www.rsyslog.com/files/download/rsyslog/%{name}-%{version}.tar.gz
-# Source0-md5:	a28c99e05888c977672db6e254694208
+# Source0-md5:	abe20d1621d1e73326c08b964a556ed7
 Source1:	%{name}.init
 Source2:	%{name}.conf
 Source3:	%{name}.sysconfig
@@ -34,6 +34,9 @@ BuildRequires:	libdbi-devel
 %{?with_snmp:BuildRequires:	net-snmp-devel}
 BuildRequires:	pkgconfig
 %{?with_pgsql:BuildRequires:	postgresql-devel}
+BuildRequires:	libestr-devel >= 0.1.9
+BuildRequires:	libfastjson-devel >= 0.99.3
+BuildRequires:	liblogging-stdlog-devel >= 1.0.3
 BuildRequires:	libnet-devel
 BuildRequires:	gnutls-devel
 BuildRequires:	rpmbuild(macros) >= 1.626
@@ -188,6 +191,7 @@ IETF standard protocol.
 	--enable-mmsnmptrapd \
 	--enable-omdbalerting \
 	--enable-omprog \
+	--enable-omruleset \
 	--enable-omstdout \
 	--enable-omtemplate \
 	--enable-omudpspoof \
@@ -294,12 +298,16 @@ fi
 /lib/systemd/system/rsyslog.service
 %attr(755,root,root) %{_sbindir}/rsyslogd
 %dir %{_libdir}/rsyslog
+%attr(755,root,root) %{_libdir}/rsyslog/imdiag.so
 %attr(755,root,root) %{_libdir}/rsyslog/imfile.so
 %attr(755,root,root) %{_libdir}/rsyslog/imklog.so
 %attr(755,root,root) %{_libdir}/rsyslog/immark.so
+%attr(755,root,root) %{_libdir}/rsyslog/impstats.so
+%attr(755,root,root) %{_libdir}/rsyslog/imptcp.so
 %attr(755,root,root) %{_libdir}/rsyslog/imtcp.so
 %attr(755,root,root) %{_libdir}/rsyslog/imudp.so
 %attr(755,root,root) %{_libdir}/rsyslog/imuxsock.so
+%attr(755,root,root) %{_libdir}/rsyslog/lmcry_gcry.so
 %attr(755,root,root) %{_libdir}/rsyslog/lmnet.so
 %attr(755,root,root) %{_libdir}/rsyslog/lmnetstrms.so
 %attr(755,root,root) %{_libdir}/rsyslog/lmnsd_ptcp.so
@@ -308,25 +316,18 @@ fi
 %attr(755,root,root) %{_libdir}/rsyslog/lmtcpclt.so
 %attr(755,root,root) %{_libdir}/rsyslog/lmtcpsrv.so
 %attr(755,root,root) %{_libdir}/rsyslog/lmzlibw.so
-%attr(755,root,root) %{_libdir}/rsyslog/omruleset.so
-%attr(755,root,root) %{_libdir}/rsyslog/omtesting.so
-%attr(755,root,root) %{_libdir}/rsyslog/imdiag.so
-%attr(755,root,root) %{_libdir}/rsyslog/impstats.so
-%attr(755,root,root) %{_libdir}/rsyslog/imptcp.so
-%attr(755,root,root) %{_libdir}/rsyslog/imtemplate.so
+%attr(755,root,root) %{_libdir}/rsyslog/mmexternal.so
 %attr(755,root,root) %{_libdir}/rsyslog/mmsnmptrapd.so
-%attr(755,root,root) %{_libdir}/rsyslog/omdbalerting.so
 %attr(755,root,root) %{_libdir}/rsyslog/ommail.so
 %attr(755,root,root) %{_libdir}/rsyslog/omprog.so
+%attr(755,root,root) %{_libdir}/rsyslog/omruleset.so
 %attr(755,root,root) %{_libdir}/rsyslog/omstdout.so
-%attr(755,root,root) %{_libdir}/rsyslog/omtemplate.so
+%attr(755,root,root) %{_libdir}/rsyslog/omtesting.so
 %attr(755,root,root) %{_libdir}/rsyslog/omuxsock.so
 %attr(755,root,root) %{_libdir}/rsyslog/pmaixforwardedfrom.so
 %attr(755,root,root) %{_libdir}/rsyslog/pmcisconames.so
 %attr(755,root,root) %{_libdir}/rsyslog/pmlastmsg.so
-%attr(755,root,root) %{_libdir}/rsyslog/pmrfc3164sd.so
 %attr(755,root,root) %{_libdir}/rsyslog/pmsnare.so
-%attr(755,root,root) %{_libdir}/rsyslog/sm_cust_bindcdr.so
 %{_mandir}/man5/*
 %{_mandir}/man8/*
 
