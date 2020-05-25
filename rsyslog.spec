@@ -20,26 +20,30 @@ Version:	8.26.0
 Release:	4
 License:	GPL v3+
 Group:		Daemons
-Source0:	http://www.rsyslog.com/files/download/rsyslog/%{name}-%{version}.tar.gz
+#Source0Download: https://www.rsyslog.com/downloads/download-v8-stable/
+Source0:	https://www.rsyslog.com/files/download/rsyslog/%{name}-%{version}.tar.gz
 # Source0-md5:	abe20d1621d1e73326c08b964a556ed7
 Source1:	%{name}.init
 Source2:	%{name}.conf
 Source3:	%{name}.sysconfig
 Source4:	%{name}.logrotate
 Patch0:		rsyslog-systemd.patch
-URL:		http://www.rsyslog.com/
+URL:		https://www.rsyslog.com/
+BuildRequires:	gnutls-devel >= 1.4.0
 %{?with_gssapi:BuildRequires:	heimdal-devel}
 BuildRequires:	libdbi-devel
+BuildRequires:	libestr-devel >= 0.1.9
+BuildRequires:	libfastjson-devel >= 0.99.3
+BuildRequires:	libgcrypt-devel
+BuildRequires:	liblogging-stdlog-devel >= 1.0.3
+BuildRequires:	libnet-devel >= 1:1.1
+BuildRequires:	libuuid-devel
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_snmp:BuildRequires:	net-snmp-devel}
 BuildRequires:	pkgconfig
 %{?with_pgsql:BuildRequires:	postgresql-devel}
-BuildRequires:	libestr-devel >= 0.1.9
-BuildRequires:	libfastjson-devel >= 0.99.3
-BuildRequires:	liblogging-stdlog-devel >= 1.0.3
-BuildRequires:	libnet-devel
-BuildRequires:	gnutls-devel
 BuildRequires:	rpmbuild(macros) >= 1.626
+BuildRequires:	zlib-devel
 Requires(post):	fileutils
 Requires(post,preun):	/sbin/chkconfig
 Requires(post,preun):	rc-scripts >= 0.2.0
@@ -56,6 +60,9 @@ Requires(triggerpostun):	sed >= 4.0
 # for vservers we don't need klogd and syslog works without klogd
 # (just it doesn't log kernel buffer into syslog)
 # Requires:	klogd
+Requires:	libestr >= 0.1.9
+Requires:	libfastjson >= 0.99.3
+Requires:	liblogging-stdlog >= 1.0.3
 Requires:	logrotate >= 3.2-3
 Requires:	psmisc >= 20.1
 Requires:	systemd-units >= 38
@@ -91,6 +98,55 @@ odpowiednim do produkcyjnych, szyfrowanych łańcuchów przekazywania
 logów, a jednocześnie jest przy tym łatwy do skonfigurowania dla
 początkującego użytkownika.
 
+%package gssapi
+Summary:	GSSAPI authentication and encryption support for rsyslog
+Summary(pl.UTF-8):	Obsługa uwierzytelniania GSSAPI i szyfrowania dla rsysloga
+Group:		Daemons
+Requires:	%{name} = %{version}-%{release}
+
+%description gssapi
+The rsyslog-gssapi package contains the rsyslog plugins which support
+GSSAPI authentication and secure connections. GSSAPI is commonly used
+for Kerberos authentication.
+
+%description gssapi -l pl.UTF-8
+Pakiet rsyslog-gssapi zawiera wtyczki rsysloga obsługujące
+uwierzytelnianie GSSAPI i bezpieczne połączenia. GSSAPI jest
+powszechnie używane do uwierzytelniania Kerberos.
+
+%package gnutls
+Summary:	TLS protocol support for rsyslog
+Summary(pl.UTF-8):	Obsługa protokołu TLS dla rsysloga
+Group:		Daemons
+Requires:	%{name} = %{version}-%{release}
+Requires:	gnutls-libs >= 1.4.0
+
+%description gnutls
+The rsyslog-gnutls package contains the rsyslog plugin that provide
+the ability to receive syslog messages via upcoming
+syslog-transport-tls IETF standard protocol.
+
+%description gnutls -l pl.UTF-8
+Ten pakiet zawiera wtyczkę rsysloga zapewniającą możliwośc odbierania
+komunikatów sysloga poprzez protokół nadchodzącego standardu IETF
+syslog-transport-tls.
+
+%package dbi
+Summary:	libdbi database support for rsyslog
+Summary(pl.UTF-*):	Obsługa baz danych przez libdbi dla rsysloga
+Group:		Daemons
+Requires:	%{name} = %{version}-%{release}
+
+%description dbi
+This module supports a large number of database systems via
+libdbi. Libdbi abstracts the database layer and provides drivers for
+many systems. Drivers are available via the libdbi-drivers project.
+
+%description dbi -l pl.UTF-8
+Ten moduł obsłuje wiele różnych systemów baz danych poprzez libdbi.
+Libdbi to abstrakcyjna warstwa baz danych, udostępniająca sterowniki
+do wielu systemów; sterowniki są dostępne w projekcie libdbi-drivers.
+
 %package mysql
 Summary:	MySQL support for rsyslog
 Summary(pl.UTF-8):	Obsługa MySQL-a do rsysloga
@@ -119,34 +175,23 @@ add PostgreSQL database support to rsyslog.
 Pakiet rsyslog-pgsql zawiera moduł dynamiczny dodający obsługę bazy
 danych PostgreSQL do rsysloga.
 
-%package gssapi
-Summary:	GSSAPI authentication and encryption support for rsyslog
-Summary(pl.UTF-8):	Obsługa uwierzytelniania GSSAPI i szyfrowania dla rsysloga
+%package snmp
+Summary:	SNMP protocol support for rsyslog
+Summary(pl.UTF-8):	Obsługa protokołu SNMP dla rsysloga
 Group:		Daemons
 Requires:	%{name} = %{version}-%{release}
 
-%description gssapi
-The rsyslog-gssapi package contains the rsyslog plugins which support
-GSSAPI authentication and secure connections. GSSAPI is commonly used
-for Kerberos authentication.
+%description snmp
+The rsyslog-snmp package contains the rsyslog plugin that provides the
+ability to send syslog messages as SNMPv1 and SNMPv2c traps.
 
-%description gssapi -l pl.UTF-8
-Pakiet rsyslog-gssapi zawiera wtyczki rsysloga obsługujące
-uwierzytelnianie GSSAPI i bezpieczne połączenia. GSSAPI jest
-powszechnie używane do uwierzytelniania Kerberos.
-
-%package dbi
-Summary:	libdbi database support for rsyslog
-Group:		Daemons
-Requires:	%{name} = %{version}-%{release}
-
-%description dbi
-This module supports a large number of database systems via
-libdbi. Libdbi abstracts the database layer and provides drivers for
-many systems. Drivers are available via the libdbi-drivers project.
+%description snmp -l pl.UTF-8
+Ten pakiet zawiera wtyczkę rsysloga zapewniającą możliwość wysyłania
+komunikatów sysloga jako pułapki SNMPv1 i SNMPv2c.
 
 %package udpspoof
-Summary:	Provides the omudpspoof module
+Summary:	The omudpspoof module for rsyslog
+Summary(pl.UTF-8):	Moduł omudspoof dla rsysloga
 Group:		Daemons
 Requires:	%{name} = %{version}-%{release}
 
@@ -155,24 +200,10 @@ This module is similar to the regular UDP forwarder, but permits to
 spoof the sender address. Also, it enables to circle through a number
 of source ports.
 
-%package snmp
-Summary:	SNMP protocol support for rsyslog
-Group:		Daemons
-Requires:	%{name} = %{version}-%{release}
-
-%description snmp
-The rsyslog-snmp package contains the rsyslog plugin that provides the
-ability to send syslog messages as SNMPv1 and SNMPv2c traps.
-
-%package gnutls
-Summary:	TLS protocol support for rsyslog
-Group:		Daemons
-Requires:	%{name} = %{version}-%{release}
-
-%description gnutls
-The rsyslog-gnutls package contains the rsyslog plugins that provide the
-ability to receive syslog messages via upcoming syslog-transport-tls
-IETF standard protocol.
+%description udpspoof -l pl.UTF-8
+Ten moduł jest podobny do zwykłego przekaźnika UDP, ale pozwana na
+fałszowanie adresu nadawcy. Dodatkowo umożliwia wysyłanie
+naprzemiennie z pewnej liczby portów źródłowych.
 
 %prep
 %setup -q
@@ -182,13 +213,16 @@ IETF standard protocol.
 %configure \
 	--disable-silent-rules \
 	--enable-gnutls \
+	%{?with_gssapi:--enable-gssapi-krb5} \
 	--enable-imdiag \
 	--enable-imfile \
 	--enable-impstats \
 	--enable-imptcp \
 	--enable-imtemplate \
+	%{?with_dbi:--enable-libdbi} \
 	--enable-mail \
 	--enable-mmsnmptrapd \
+	%{?with_mysql:--enable-mysql} \
 	--enable-omdbalerting \
 	--enable-omprog \
 	--enable-omruleset \
@@ -196,19 +230,16 @@ IETF standard protocol.
 	--enable-omtemplate \
 	--enable-omudpspoof \
 	--enable-omuxsock \
+	%{?with_pgsql:--enable-pgsql} \
 	--enable-pmaixforwardedfrom \
 	--enable-pmcisconames \
 	--enable-pmlastmsg \
 	--enable-pmrfc3164sd \
 	--enable-pmsnare \
 	--enable-smcustbindcdr \
-	--enable-unlimited-select \
-	%{?with_gssapi:--enable-gssapi-krb5} \
-	%{?with_mysql:--enable-mysql} \
-	%{?with_pgsql:--enable-pgsql} \
 	%{?with_snmp:--enable-snmp} \
-	%{?with_dbi:--enable-libdbi} \
-	--with-systemdsystemunitdir=/lib/systemd/system
+	--enable-unlimited-select \
+	--with-systemdsystemunitdir=%{systemdunitdir}
 
 %{__make}
 
@@ -288,14 +319,24 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%doc AUTHORS ChangeLog NEWS README
+%doc AUTHORS ChangeLog README.md
 %dir %{_sysconfdir}/rsyslog.d
 %attr(640,root,syslog) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/rsyslog.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/rsyslog
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/rsyslog
 %attr(754,root,root) /etc/rc.d/init.d/rsyslog
-%attr(640,root,logs) %ghost /var/log/*
-/lib/systemd/system/rsyslog.service
+%attr(640,root,logs) %ghost /var/log/cron
+%attr(640,root,logs) %ghost /var/log/daemon
+%attr(640,root,logs) %ghost /var/log/debug
+%attr(640,root,logs) %ghost /var/log/kernel
+%attr(640,root,logs) %ghost /var/log/lpr
+%attr(640,root,logs) %ghost /var/log/maillog
+%attr(640,root,logs) %ghost /var/log/messages
+%attr(640,root,logs) %ghost /var/log/secure
+%attr(640,root,logs) %ghost /var/log/spooler
+%attr(640,root,logs) %ghost /var/log/syslog
+%attr(640,root,logs) %ghost /var/log/user
+%{systemdunitdir}/rsyslog.service
 %attr(755,root,root) %{_sbindir}/rsyslogd
 %dir %{_libdir}/rsyslog
 %attr(755,root,root) %{_libdir}/rsyslog/imdiag.so
@@ -328,8 +369,26 @@ fi
 %attr(755,root,root) %{_libdir}/rsyslog/pmcisconames.so
 %attr(755,root,root) %{_libdir}/rsyslog/pmlastmsg.so
 %attr(755,root,root) %{_libdir}/rsyslog/pmsnare.so
-%{_mandir}/man5/*
-%{_mandir}/man8/*
+%{_mandir}/man5/rsyslog.conf.5*
+%{_mandir}/man8/rsyslogd.8*
+
+%if %{with gssapi}
+%files gssapi
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/rsyslog/imgssapi.so
+%attr(755,root,root) %{_libdir}/rsyslog/lmgssutil.so
+%attr(755,root,root) %{_libdir}/rsyslog/omgssapi.so
+%endif
+
+%files gnutls
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/rsyslog/lmnsd_gtls.so
+
+%if %{with dbi}
+%files dbi
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/rsyslog/omlibdbi.so
+%endif
 
 %if %{with mysql}
 %files mysql
@@ -345,30 +404,12 @@ fi
 %attr(755,root,root) %{_libdir}/rsyslog/ompgsql.so
 %endif
 
-%if %{with gssapi}
-%files gssapi
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/rsyslog/imgssapi.so
-%attr(755,root,root) %{_libdir}/rsyslog/lmgssutil.so
-%attr(755,root,root) %{_libdir}/rsyslog/omgssapi.so
-%endif
-
-%if %{with dbi}
-%files dbi
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/rsyslog/omlibdbi.so
-%endif
-
-%files udpspoof
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/rsyslog/omudpspoof.so
-
 %if %{with snmp}
 %files snmp
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/rsyslog/omsnmp.so
 %endif
 
-%files gnutls
+%files udpspoof
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/rsyslog/lmnsd_gtls.so
+%attr(755,root,root) %{_libdir}/rsyslog/omudpspoof.so
