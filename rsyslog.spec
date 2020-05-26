@@ -1,12 +1,31 @@
 # TODO
 # - without gssapi still generates dep on heimdal-libs
+# --enable-ksi-ls12 (BR: libksi >= 3.19.0)
+# --enable-mmgrok (BR: glib2-devel >= 2.0, grok)
+# --enable-mmkubernetes (BR: curl lognorm >= 2.0.3)
+# --enable-mmnormalize (BR: liblognorm-devel >= 2.0.3)
+# --enable-pmnormalize (BR: liblognorm-devel >= 2.0.3)
+# --enable-omamqp1? (BR: libqpid-proton >= 0.9)
+# --enable-omhdfs? (BR: hdfs.h or hadoop/hdfs.h)
 #
 # Conditional build:
+%bcond_without	curl		# clickhouse, elasticsearch, fmhttp, imdocker, and omhttpfs support vis curl
 %bcond_without	dbi		# database support via libdbi
 %bcond_without	gssapi		# GSSAPI Kerberos 5 support
+%bcond_without	kafka		# Kafka output support
+%bcond_without	maxminddb	# MaxmindDB dblookup support
+%bcond_without	mongodb		# MongoDB output support
 %bcond_without	mysql		# MySQL database support
+%bcond_with	openssl		# mmrfc5424addhmac module
 %bcond_without	pgsql		# PostgreSQL database support
+%bcond_without	rabbitmq	# RammitMQ support
+%bcond_without	redis		# REDIS output support via hiredis
+%bcond_without	relp		# RELP input/output support
+%bcond_without	rfc3195		# RFC 3195 input support
 %bcond_without	snmp		# SNMP support
+%bcond_with	tcl		# Tcl output support [broken tcl linking]
+%bcond_without	zeromq		# 0MQ input/output support via czmq
+%bcond_without	systemd		# systemd integration and journal (input/output) support
 
 Summary:	Linux system and kernel logger
 Summary(de.UTF-8):	Linux-System- und Kerner-Logger
@@ -16,33 +35,46 @@ Summary(pl.UTF-8):	Programy logujące zdarzenia w systemie i jądrze Linuksa
 Summary(pt_BR.UTF-8):	Registrador de log do sistema linux
 Summary(tr.UTF-8):	Linux sistem ve çekirdek kayıt süreci
 Name:		rsyslog
-Version:	8.26.0
-Release:	4
+Version:	8.2004.0
+Release:	1
 License:	GPL v3+
 Group:		Daemons
 #Source0Download: https://www.rsyslog.com/downloads/download-v8-stable/
 Source0:	https://www.rsyslog.com/files/download/rsyslog/%{name}-%{version}.tar.gz
-# Source0-md5:	abe20d1621d1e73326c08b964a556ed7
+# Source0-md5:	375a60ab0f461367f84f07a5dbda6de2
 Source1:	%{name}.init
 Source2:	%{name}.conf
 Source3:	%{name}.sysconfig
 Source4:	%{name}.logrotate
 Patch0:		rsyslog-systemd.patch
 URL:		https://www.rsyslog.com/
+%{?with_zeromq:BuildRequires:	czmq-devel >= 3.0.2}
 BuildRequires:	gnutls-devel >= 1.4.0
 %{?with_gssapi:BuildRequires:	heimdal-devel}
+%{?with_redis:BuildRequires:	hiredis-devel >= 0.10.1}
 BuildRequires:	libdbi-devel
 BuildRequires:	libestr-devel >= 0.1.9
-BuildRequires:	libfastjson-devel >= 0.99.3
+BuildRequires:	libfastjson-devel >= 0.99.8
 BuildRequires:	libgcrypt-devel
+%{?with_rfc3195:BuildRequires:	liblogging-rfc3195-devel >= 1.0.1}
 BuildRequires:	liblogging-stdlog-devel >= 1.0.3
+#BuildRequires:	liblognorm-devel >= 2.0.3
+%{?with_maxminddb:BuildRequires:	libmaxminddb-devel}
 BuildRequires:	libnet-devel >= 1:1.1
+%{?with_kafka:BuildRequires:	librdkafka-devel >= 0.9.1}
+%{?with_relp:BuildRequires:	librelp-devel >= 1.2.14}
 BuildRequires:	libuuid-devel
+%{?with_mongodb:BuildRequires:	mongo-c-driver-devel >= 1.0}
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_snmp:BuildRequires:	net-snmp-devel}
+%{?with_openssl:BuildRequires:	openssl-devel >= 0.9.7}
 BuildRequires:	pkgconfig
 %{?with_pgsql:BuildRequires:	postgresql-devel}
+%{?with_rabbitmq:BuildRequires:	rabbitmq-c-devel >= 0.2.0}
 BuildRequires:	rpmbuild(macros) >= 1.626
+%{?with_systemd:BuildRequires:	systemd-devel >= 1:234}
+%{?with_tcl:BuildRequires:	tcl-devel}
+BuildRequires:	xxHash-devel
 BuildRequires:	zlib-devel
 Requires(post):	fileutils
 Requires(post,preun):	/sbin/chkconfig
@@ -61,7 +93,7 @@ Requires(triggerpostun):	sed >= 4.0
 # (just it doesn't log kernel buffer into syslog)
 # Requires:	klogd
 Requires:	libestr >= 0.1.9
-Requires:	libfastjson >= 0.99.3
+Requires:	libfastjson >= 0.99.8
 Requires:	liblogging-stdlog >= 1.0.3
 Requires:	logrotate >= 3.2-3
 Requires:	psmisc >= 20.1
@@ -114,6 +146,74 @@ Pakiet rsyslog-gssapi zawiera wtyczki rsysloga obsługujące
 uwierzytelnianie GSSAPI i bezpieczne połączenia. GSSAPI jest
 powszechnie używane do uwierzytelniania Kerberos.
 
+%package http
+Summary:	HTTP support modules for rsyslog
+Summary(pl.UTF-8):	Moduły obsługujące HTTP dla rsysloga
+Group:		Daemons
+Requires:	%{name} = %{version}-%{release}
+
+%description http
+HTTP support modules for rsyslog: http function module, docker input
+module, clickhouse output module, elasticsearch output module, http
+output module and httpfs output module.
+
+%description http -l pl.UTF-8
+Moduły obsługujące HTTP dla rsysloga: moduł funkcji http, moduł
+wejściowy docker, moduł wyjściowy clickhouse, moduł wyjściowy
+elasticsearch i moduł wyjściowy http i moduł wyjściowy httpfs.
+
+%package czmq
+Summary:	0MQ input/output support for rsyslog
+Summary(pl.UTF-8):	Obsługa wejścia/wyjścia 0MQ dla rsysloga
+Group:		Daemons
+Requires:	%{name} = %{version}-%{release}
+Requires:	czmq >= 3.0.2
+
+%description czmq
+0MQ input/output support for rsyslog.
+
+%description czmq -l pl.UTF-8
+Obsługa wejścia/wyjścia 0MQ dla rsysloga.
+
+%package kafka
+Summary:	Kafka input/output support for rsyslog
+Summary(pl.UTF-8):	Obsługa wejścia/wyjścia Kafka dla rsysloga
+Group:		Daemons
+Requires:	%{name} = %{version}-%{release}
+Requires:	librdkafka >= 0.9.1
+
+%description kafka
+Kafka input/output support for rsyslog.
+
+%description kafka -l pl.UTF-8
+Obsługa wejścia/wyjścia Kafka dla rsysloga.
+
+%package relp
+Summary:	RELP input/output support for rsyslog
+Summary(pl.UTF-8):	Obsługa wejścia/wyjścia RELP dla rsysloga
+Group:		Daemons
+Requires:	%{name} = %{version}-%{release}
+Requires:	librelp >= 1.2.14
+
+%description relp
+RELP input/output support for rsyslog.
+
+%description relp -l pl.UTF-8
+Obsługa wejścia/wyjścia RELP dla rsysloga.
+
+%package rfc3195
+Summary:	RFC 3195 input support for rsyslog
+Summary(pl.UTF-8):	Obsługa wejścia RFC 3195 dla rsysloga
+Group:		Daemons
+Requires:	%{name} = %{version}-%{release}
+Requires:	liblogging-rfc3195 >= 1.0.1
+
+%description rfc3195
+RFC 3195 input support for rsyslog.
+
+%description rfc3195 -l pl.UTF-8
+Obsługa wejścia RFC 3195 dla rsysloga.
+
 %package gnutls
 Summary:	TLS protocol support for rsyslog
 Summary(pl.UTF-8):	Obsługa protokołu TLS dla rsysloga
@@ -131,9 +231,34 @@ Ten pakiet zawiera wtyczkę rsysloga zapewniającą możliwośc odbierania
 komunikatów sysloga poprzez protokół nadchodzącego standardu IETF
 syslog-transport-tls.
 
+%package mmdblookup
+Summary:	Maxmind DB lookup module for rsyslog
+Summary(pl.UTF-8):	Moduł wyszukujący w bazie Maxmind DB dla rsysloga
+Group:		Daemons
+Requires:	%{name} = %{version}-%{release}
+
+%description mmdblookup
+Maxmind DB lookup module for rsyslog.
+
+%description mmdblookup -l pl.UTF-8
+Moduł wyszukujący w bazie Maxmind DB dla rsysloga.
+
+%package hiredis
+Summary:	REDIS output support for rsyslog
+Summary(pl.UTF-8):	Obsługa wyjścia REDIS dla rsysloga
+Group:		Daemons
+Requires:	%{name} = %{version}-%{release}
+Requires:	hiredis >= 0.10.1
+
+%description hiredis
+REDIS output support for rsyslog.
+
+%description hiredis -l pl.UTF-8
+Obsługa wyjścia REDIS dla rsysloga.
+
 %package dbi
 Summary:	libdbi database support for rsyslog
-Summary(pl.UTF-*):	Obsługa baz danych przez libdbi dla rsysloga
+Summary(pl.UTF-8):	Obsługa baz danych przez libdbi dla rsysloga
 Group:		Daemons
 Requires:	%{name} = %{version}-%{release}
 
@@ -146,6 +271,18 @@ many systems. Drivers are available via the libdbi-drivers project.
 Ten moduł obsłuje wiele różnych systemów baz danych poprzez libdbi.
 Libdbi to abstrakcyjna warstwa baz danych, udostępniająca sterowniki
 do wielu systemów; sterowniki są dostępne w projekcie libdbi-drivers.
+
+%package mongodb
+Summary:	MongoDB output support for rsyslog
+Summary(pl.UTF-8):	Obsługa wyjścia MongoDB dla rsysloga
+Group:		Daemons
+Requires:	%{name} = %{version}-%{release}
+
+%description mongodb
+MongoDB output support for rsyslog.
+
+%description mongodb -l pl.UTF-8
+Obsługa wyjścia MongoDB dla rsysloga.
 
 %package mysql
 Summary:	MySQL support for rsyslog
@@ -174,6 +311,19 @@ add PostgreSQL database support to rsyslog.
 %description pgsql -l pl.UTF-8
 Pakiet rsyslog-pgsql zawiera moduł dynamiczny dodający obsługę bazy
 danych PostgreSQL do rsysloga.
+
+%package rabbitmq
+Summary:	RabbitMQ output support for rsyslog
+Summary(pl.UTF-8):	Obsługa wyjścia RabbitMQ dla rsysloga
+Group:		Daemons
+Requires:	%{name} = %{version}-%{release}
+Requires:	rabbitmq-c >= 0.2.0
+
+%description rabbitmq
+RabbitMQ output support for rsyslog.
+
+%description rabbitmq -l pl.UTF-8
+Obsługa wyjścia RabbitMQ dla rsysloga.
 
 %package snmp
 Summary:	SNMP protocol support for rsyslog
@@ -212,33 +362,71 @@ naprzemiennie z pewnej liczby portów źródłowych.
 %build
 %configure \
 	--disable-silent-rules \
+	%{?with_curl:--enable-clickhouse} \
+	%{?with_curl:--enable-elasticsearch} \
+	--enable-fmhash-xxhash \
+	%{!?with_curl:--disable-fmhttp} \
 	--enable-gnutls \
 	%{?with_gssapi:--enable-gssapi-krb5} \
+	--enable-imbatchreport \
 	--enable-imdiag \
+	%{?with_curl:--enable-imdocker} \
 	--enable-imfile \
+	%{?with_zeromq:--enable-imczmq} \
+	%{?with_systemd:--enable-imjournal} \
+	%{?with_kafka:--enable-imkafka} \
 	--enable-impstats \
 	--enable-imptcp \
 	--enable-imtemplate \
 	%{?with_dbi:--enable-libdbi} \
+	%{!?with_systemd:--disable-libsystemd} \
 	--enable-mail \
+	--enable-mmanon \
+	--enable-mmaudit \
+	--enable-mmcount \
+	%{?with_maxminddb:--enable-mmdblookup} \
+	--enable-mmfields \
+	--enable-mmjsonparse \
+	--enable-mmpstrucdata \
+	%{?with_openssl:--enable-mmrfc5424addhmac} \
+	--enable-mmrm1stspace \
+	--enable-mmsequence \
 	--enable-mmsnmptrapd \
+	--enable-mmtaghostname \
+	--enable-mmutf8fix \
 	%{?with_mysql:--enable-mysql} \
+	%{?with_zeromq:--enable-omczmq} \
 	--enable-omdbalerting \
+	--enable-omfile-hardened \
+	%{?with_curl:--enable-omhttp} \
+	%{?with_curl:--enable-omhttpfs} \
+	%{?with_redis:--enable-omhiredis} \
+	%{?with_systemd:--enable-omjournal} \
+	%{?with_kafka:--enable-omkafka} \
+	%{?with_mongodb:--enable-ommongodb} \
 	--enable-omprog \
+	%{?with_rabbitmq:--enable-omrabbitmq} \
 	--enable-omruleset \
 	--enable-omstdout \
+	%{?with_tcl:--enable-omtcl} \
 	--enable-omtemplate \
 	--enable-omudpspoof \
 	--enable-omuxsock \
 	%{?with_pgsql:--enable-pgsql} \
 	--enable-pmaixforwardedfrom \
+	--enable-pmciscoios \
 	--enable-pmcisconames \
+	--enable-pmdb2diag \
 	--enable-pmlastmsg \
+	--enable-pmpanngfw \
 	--enable-pmrfc3164sd \
 	--enable-pmsnare \
+	%{?with_relp:--enable-relp} \
+	%{?with_rfc3195:--enable-rfc3195} \
 	--enable-smcustbindcdr \
 	%{?with_snmp:--enable-snmp} \
 	--enable-unlimited-select \
+	--enable-usertools \
 	--with-systemdsystemunitdir=%{systemdunitdir}
 
 %{__make}
@@ -320,6 +508,9 @@ fi
 %files
 %defattr(644,root,root,755)
 %doc AUTHORS ChangeLog README.md
+%attr(755,root,root) %{_bindir}/logctl
+%attr(755,root,root) %{_bindir}/rscryutil
+%attr(755,root,root) %{_sbindir}/rsyslogd
 %dir %{_sysconfdir}/rsyslog.d
 %attr(640,root,syslog) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/rsyslog.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/rsyslog
@@ -337,10 +528,12 @@ fi
 %attr(640,root,logs) %ghost /var/log/syslog
 %attr(640,root,logs) %ghost /var/log/user
 %{systemdunitdir}/rsyslog.service
-%attr(755,root,root) %{_sbindir}/rsyslogd
 %dir %{_libdir}/rsyslog
+%attr(755,root,root) %{_libdir}/rsyslog/fmhash.so
+%attr(755,root,root) %{_libdir}/rsyslog/imbatchreport.so
 %attr(755,root,root) %{_libdir}/rsyslog/imdiag.so
 %attr(755,root,root) %{_libdir}/rsyslog/imfile.so
+%{?with_systemd:%attr(755,root,root) %{_libdir}/rsyslog/imjournal.so}
 %attr(755,root,root) %{_libdir}/rsyslog/imklog.so
 %attr(755,root,root) %{_libdir}/rsyslog/immark.so
 %attr(755,root,root) %{_libdir}/rsyslog/impstats.so
@@ -353,12 +546,23 @@ fi
 %attr(755,root,root) %{_libdir}/rsyslog/lmnetstrms.so
 %attr(755,root,root) %{_libdir}/rsyslog/lmnsd_ptcp.so
 %attr(755,root,root) %{_libdir}/rsyslog/lmregexp.so
-%attr(755,root,root) %{_libdir}/rsyslog/lmstrmsrv.so
 %attr(755,root,root) %{_libdir}/rsyslog/lmtcpclt.so
 %attr(755,root,root) %{_libdir}/rsyslog/lmtcpsrv.so
 %attr(755,root,root) %{_libdir}/rsyslog/lmzlibw.so
+%attr(755,root,root) %{_libdir}/rsyslog/mmanon.so
+%attr(755,root,root) %{_libdir}/rsyslog/mmaudit.so
+%attr(755,root,root) %{_libdir}/rsyslog/mmcount.so
 %attr(755,root,root) %{_libdir}/rsyslog/mmexternal.so
+%attr(755,root,root) %{_libdir}/rsyslog/mmfields.so
+%attr(755,root,root) %{_libdir}/rsyslog/mmjsonparse.so
+%attr(755,root,root) %{_libdir}/rsyslog/mmpstrucdata.so
+%attr(755,root,root) %{_libdir}/rsyslog/mmrm1stspace.so
+%attr(755,root,root) %{_libdir}/rsyslog/mmsequence.so
 %attr(755,root,root) %{_libdir}/rsyslog/mmsnmptrapd.so
+%attr(755,root,root) %{_libdir}/rsyslog/mmtaghostname.so
+%attr(755,root,root) %{_libdir}/rsyslog/mmutf8fix.so
+%attr(755,root,root) %{_libdir}/rsyslog/omfile-hardened.so
+%{?with_systemd:%attr(755,root,root) %{_libdir}/rsyslog/omjournal.so}
 %attr(755,root,root) %{_libdir}/rsyslog/ommail.so
 %attr(755,root,root) %{_libdir}/rsyslog/omprog.so
 %attr(755,root,root) %{_libdir}/rsyslog/omruleset.so
@@ -366,11 +570,25 @@ fi
 %attr(755,root,root) %{_libdir}/rsyslog/omtesting.so
 %attr(755,root,root) %{_libdir}/rsyslog/omuxsock.so
 %attr(755,root,root) %{_libdir}/rsyslog/pmaixforwardedfrom.so
+%attr(755,root,root) %{_libdir}/rsyslog/pmciscoios.so
 %attr(755,root,root) %{_libdir}/rsyslog/pmcisconames.so
+%attr(755,root,root) %{_libdir}/rsyslog/pmdb2diag.so
 %attr(755,root,root) %{_libdir}/rsyslog/pmlastmsg.so
+%attr(755,root,root) %{_libdir}/rsyslog/pmpanngfw.so
 %attr(755,root,root) %{_libdir}/rsyslog/pmsnare.so
 %{_mandir}/man5/rsyslog.conf.5*
 %{_mandir}/man8/rsyslogd.8*
+
+%if %{with curl}
+%files http
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/rsyslog/fmhttp.so
+%attr(755,root,root) %{_libdir}/rsyslog/imdocker.so
+%attr(755,root,root) %{_libdir}/rsyslog/omclickhouse.so
+%attr(755,root,root) %{_libdir}/rsyslog/omelasticsearch.so
+%attr(755,root,root) %{_libdir}/rsyslog/omhttp.so
+%attr(755,root,root) %{_libdir}/rsyslog/omhttpfs.so
+%endif
 
 %if %{with gssapi}
 %files gssapi
@@ -380,14 +598,59 @@ fi
 %attr(755,root,root) %{_libdir}/rsyslog/omgssapi.so
 %endif
 
+%if %{with zeromq}
+%files czmq
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/rsyslog/imczmq.so
+%attr(755,root,root) %{_libdir}/rsyslog/omczmq.so
+%endif
+
+%if %{with kafka}
+%files kafka
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/rsyslog/imkafka.so
+%attr(755,root,root) %{_libdir}/rsyslog/omkafka.so
+%endif
+
+%if %{with relp}
+%files relp
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/rsyslog/imrelp.so
+%attr(755,root,root) %{_libdir}/rsyslog/omrelp.so
+%endif
+
+%if %{with rfc3195}
+%files rfc3195
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/rsyslog/im3195.so
+%endif
+
 %files gnutls
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/rsyslog/lmnsd_gtls.so
+
+%if %{with maxminddb}
+%files mmdblookup
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/rsyslog/mmdblookup.so
+%endif
+
+%if %{with redis}
+%files hiredis
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/rsyslog/omhiredis.so
+%endif
 
 %if %{with dbi}
 %files dbi
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/rsyslog/omlibdbi.so
+%endif
+
+%if %{with mongodb}
+%files mongodb
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/rsyslog/ommongodb.so
 %endif
 
 %if %{with mysql}
@@ -402,6 +665,12 @@ fi
 %defattr(644,root,root,755)
 %doc plugins/ompgsql/createDB.sql
 %attr(755,root,root) %{_libdir}/rsyslog/ompgsql.so
+%endif
+
+%if %{with rabbitmq}
+%files rabbitmq
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/rsyslog/omrabbitmq.so
 %endif
 
 %if %{with snmp}
