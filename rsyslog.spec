@@ -1,18 +1,16 @@
 # TODO
 # - without gssapi still generates dep on heimdal-libs
-# --enable-ksi-ls12 (BR: libksi >= 3.19.0)
-# --enable-mmgrok (BR: glib2-devel >= 2.0, grok)
-# --enable-mmkubernetes (BR: curl lognorm >= 2.0.3)
-# --enable-mmnormalize (BR: liblognorm-devel >= 2.0.3)
-# --enable-pmnormalize (BR: liblognorm-devel >= 2.0.3)
-# --enable-omamqp1? (BR: libqpid-proton >= 0.9)
 # --enable-omhdfs? (BR: hdfs.h or hadoop/hdfs.h)
 #
 # Conditional build:
+%bcond_without	amqp		# AMQP (Qpid Proton) output support
 %bcond_without	curl		# clickhouse, elasticsearch, fmhttp, imdocker, and omhttpfs support vis curl
 %bcond_without	dbi		# database support via libdbi
+%bcond_without	grok		# mmgrok support
 %bcond_without	gssapi		# GSSAPI Kerberos 5 support
 %bcond_without	kafka		# Kafka output support
+%bcond_without	ksi		# log file signing support (via GuardTime KSI LS12)
+%bcond_without	lognorm		# normalization modules
 %bcond_without	maxminddb	# MaxmindDB dblookup support
 %bcond_without	mongodb		# MongoDB output support
 %bcond_without	mysql		# MySQL database support
@@ -36,7 +34,7 @@ Summary(pt_BR.UTF-8):	Registrador de log do sistema linux
 Summary(tr.UTF-8):	Linux sistem ve çekirdek kayıt süreci
 Name:		rsyslog
 Version:	8.2004.0
-Release:	1
+Release:	2
 License:	GPL v3+
 Group:		Daemons
 #Source0Download: https://www.rsyslog.com/downloads/download-v8-stable/
@@ -49,16 +47,19 @@ Source4:	%{name}.logrotate
 Patch0:		rsyslog-systemd.patch
 URL:		https://www.rsyslog.com/
 %{?with_zeromq:BuildRequires:	czmq-devel >= 3.0.2}
+%{?with_grok:BuildRequires:	glib2-devel >= 2.0}
 BuildRequires:	gnutls-devel >= 1.4.0
+%{?with_grok:BuildRequires:	grok-devel}
 %{?with_gssapi:BuildRequires:	heimdal-devel}
 %{?with_redis:BuildRequires:	hiredis-devel >= 0.10.1}
 BuildRequires:	libdbi-devel
 BuildRequires:	libestr-devel >= 0.1.9
 BuildRequires:	libfastjson-devel >= 0.99.8
 BuildRequires:	libgcrypt-devel
+%{?with_ksi:BuildRequires:	libksi-devel >= 3.19.0}
 %{?with_rfc3195:BuildRequires:	liblogging-rfc3195-devel >= 1.0.1}
 BuildRequires:	liblogging-stdlog-devel >= 1.0.3
-#BuildRequires:	liblognorm-devel >= 2.0.3
+%{?with_lognorm:BuildRequires:	liblognorm-devel >= 2.0.3}
 %{?with_maxminddb:BuildRequires:	libmaxminddb-devel}
 BuildRequires:	libnet-devel >= 1:1.1
 %{?with_kafka:BuildRequires:	librdkafka-devel >= 0.9.1}
@@ -68,6 +69,7 @@ BuildRequires:	libuuid-devel
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_snmp:BuildRequires:	net-snmp-devel}
 %{?with_openssl:BuildRequires:	openssl-devel >= 0.9.7}
+%{?with_amqp:BuildRequires:	qpid-proton-c-devel >= 0.9}
 BuildRequires:	pkgconfig
 %{?with_pgsql:BuildRequires:	postgresql-devel}
 %{?with_rabbitmq:BuildRequires:	rabbitmq-c-devel >= 0.2.0}
@@ -201,6 +203,22 @@ RELP input/output support for rsyslog.
 %description relp -l pl.UTF-8
 Obsługa wejścia/wyjścia RELP dla rsysloga.
 
+%package normalize
+Summary:	Normalization plugins for rsyslog
+Summary(pl.UTF-8):	Wtyczki normalizujące dla rsysloga
+Group:		Daemons
+Requires:	%{name} = %{version}-%{release}
+Requires:	liblognorm >= 2.0.3
+
+%description normalize
+rsyslog message modification and parser modules for parsing and
+normalizing incoming messages with liblognorm.
+
+%description normalize -l pl.UTF-8
+Moduły rsysloga: modyfikujący komuynikaty i analizujący do analizy i
+normalizowania przychodzących komunikatów przy użyciu biblioteki
+liblognorm.
+
 %package rfc3195
 Summary:	RFC 3195 input support for rsyslog
 Summary(pl.UTF-8):	Obsługa wejścia RFC 3195 dla rsysloga
@@ -231,6 +249,19 @@ Ten pakiet zawiera wtyczkę rsysloga zapewniającą możliwośc odbierania
 komunikatów sysloga poprzez protokół nadchodzącego standardu IETF
 syslog-transport-tls.
 
+%package ksi
+Summary:	GuardTime KSI-LS12 signing support for rsyslog
+Summary(pl.UTF-8):	Obsługa podpisów GuardTime KSI-LS12 dl rsysloga
+Group:		Daemons
+Requires:	%{name} = %{version}-%{release}
+Requires:	libksi-devel >= 3.19.0
+
+%description ksi
+GuardTime KSI-LS12 signing support for rsyslog.
+
+%description ksi -l pl.UTF-8
+Obsługa podpisów GuardTime KSI-LS12 dl rsysloga.
+
 %package mmdblookup
 Summary:	Maxmind DB lookup module for rsyslog
 Summary(pl.UTF-8):	Moduł wyszukujący w bazie Maxmind DB dla rsysloga
@@ -242,6 +273,52 @@ Maxmind DB lookup module for rsyslog.
 
 %description mmdblookup -l pl.UTF-8
 Moduł wyszukujący w bazie Maxmind DB dla rsysloga.
+
+%package mmgrok
+Summary:	Grok Message Modify plugin for rsyslog
+Summary(pl.UTF-8):	Wtyczka modyfikująca komunikaty Grok dla rsysloga
+Group:		Daemons
+Requires:	%{name} = %{version}-%{release}
+
+%description mmgrok
+Grok Message Modify plugin for rsyslog. Messages are parsed into a
+structured JSON data.
+
+%description mmgrok -l pl.UTF-8
+Wtyczka modyfikująca komunikaty Grok dla rsysloga. Komunikaty są
+przetwarzane do ustrukturyzowanych danych JSON.
+
+%package mmkubernetes
+Summary:	Kubernetes message modify plugin for rsyslog
+Summary(pl.UTF-8):	Wtyczka modyfikująca Kubernetes dla rsysloga
+Group:		Daemons
+Requires:	%{name} = %{version}-%{release}
+Requires:	liblognorm >= 2.0.3
+
+%description mmkubernetes
+rsyslog message modification module that uses metadata obtained from
+the message to query Kubernetes and obtain additional metadata
+relating to the container instance.
+
+%description mmkubernetes -l pl.UTF-8
+Moduł rsysloga modyfikujący komunikaty, wykorzystujący metadane
+wydobyte z komunikatu do odpytania Kubernetesa i uzyskania
+dodatkowych metadanych dotyczących instancji kontenera.
+
+%package amqp
+Summary:	AMQP1 output support for rsyslog
+Summary(pl.UTF-8):	Obsługa wyjścia AMQP1 do rsysloga
+Group:		Daemons
+Requires:	%{name} = %{version}-%{release}
+Requires:	qpid-proton-c >= 0.9
+
+%description amqp
+This output plugin enables rsyslog to send messages to an AMQP 1.0
+protocol compliant message bus.
+
+%description amqp -l pl.UTF-8
+Wtyczka wyjściowa rsysloga wysyłająca komunikaty do magistrali
+zgodnej z protokołem AMQP 1.0.
 
 %package hiredis
 Summary:	REDIS output support for rsyslog
@@ -359,6 +436,10 @@ naprzemiennie z pewnej liczby portów źródłowych.
 %setup -q
 %patch0 -p1
 
+%{__mv} contrib/imczmq/README{,.imczmq}
+%{__mv} contrib/omczmq/README{,.omczmq}
+%{__mv} plugins/omelasticsearch/README{,.omelasticsearch}
+
 %build
 %configure \
 	--disable-silent-rules \
@@ -377,7 +458,8 @@ naprzemiennie z pewnej liczby portów źródłowych.
 	%{?with_kafka:--enable-imkafka} \
 	--enable-impstats \
 	--enable-imptcp \
-	--enable-imtemplate \
+	--enable-imtuxedoulog \
+	%{?with_ksi:--enable-ksi-ls12} \
 	%{?with_dbi:--enable-libdbi} \
 	%{!?with_systemd:--disable-libsystemd} \
 	--enable-mail \
@@ -386,7 +468,12 @@ naprzemiennie z pewnej liczby portów źródłowych.
 	--enable-mmcount \
 	%{?with_maxminddb:--enable-mmdblookup} \
 	--enable-mmfields \
+	%{?with_grok:--enable-mmgrok} \
 	--enable-mmjsonparse \
+%if %{with curl} && %{with lognorm}
+	--enable-mmkubernetes \
+%endif
+	%{?with_lognorm:--enable-mmnormalize} \
 	--enable-mmpstrucdata \
 	%{?with_openssl:--enable-mmrfc5424addhmac} \
 	--enable-mmrm1stspace \
@@ -395,8 +482,8 @@ naprzemiennie z pewnej liczby portów źródłowych.
 	--enable-mmtaghostname \
 	--enable-mmutf8fix \
 	%{?with_mysql:--enable-mysql} \
+	%{?with_amqp:--enable-omamqp1} \
 	%{?with_zeromq:--enable-omczmq} \
-	--enable-omdbalerting \
 	--enable-omfile-hardened \
 	%{?with_curl:--enable-omhttp} \
 	%{?with_curl:--enable-omhttpfs} \
@@ -409,7 +496,6 @@ naprzemiennie z pewnej liczby portów źródłowych.
 	--enable-omruleset \
 	--enable-omstdout \
 	%{?with_tcl:--enable-omtcl} \
-	--enable-omtemplate \
 	--enable-omudpspoof \
 	--enable-omuxsock \
 	%{?with_pgsql:--enable-pgsql} \
@@ -418,12 +504,11 @@ naprzemiennie z pewnej liczby portów źródłowych.
 	--enable-pmcisconames \
 	--enable-pmdb2diag \
 	--enable-pmlastmsg \
+	%{?with_lognorm:--enable-pmnormalize} \
 	--enable-pmpanngfw \
-	--enable-pmrfc3164sd \
 	--enable-pmsnare \
 	%{?with_relp:--enable-relp} \
 	%{?with_rfc3195:--enable-rfc3195} \
-	--enable-smcustbindcdr \
 	%{?with_snmp:--enable-snmp} \
 	--enable-unlimited-select \
 	--enable-usertools \
@@ -539,6 +624,7 @@ fi
 %attr(755,root,root) %{_libdir}/rsyslog/impstats.so
 %attr(755,root,root) %{_libdir}/rsyslog/imptcp.so
 %attr(755,root,root) %{_libdir}/rsyslog/imtcp.so
+%attr(755,root,root) %{_libdir}/rsyslog/imtuxedoulog.so
 %attr(755,root,root) %{_libdir}/rsyslog/imudp.so
 %attr(755,root,root) %{_libdir}/rsyslog/imuxsock.so
 %attr(755,root,root) %{_libdir}/rsyslog/lmcry_gcry.so
@@ -582,6 +668,7 @@ fi
 %if %{with curl}
 %files http
 %defattr(644,root,root,755)
+%doc plugins/omelasticsearch/README.omelasticsearch
 %attr(755,root,root) %{_libdir}/rsyslog/fmhttp.so
 %attr(755,root,root) %{_libdir}/rsyslog/imdocker.so
 %attr(755,root,root) %{_libdir}/rsyslog/omclickhouse.so
@@ -601,6 +688,7 @@ fi
 %if %{with zeromq}
 %files czmq
 %defattr(644,root,root,755)
+%doc contrib/imczmq/README.imczmq contrib/omczmq/README.omczmq
 %attr(755,root,root) %{_libdir}/rsyslog/imczmq.so
 %attr(755,root,root) %{_libdir}/rsyslog/omczmq.so
 %endif
@@ -619,6 +707,13 @@ fi
 %attr(755,root,root) %{_libdir}/rsyslog/omrelp.so
 %endif
 
+%if %{with lognorm}
+%files normalize
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/rsyslog/mmnormalize.so
+%attr(755,root,root) %{_libdir}/rsyslog/pmnormalize.so
+%endif
+
 %if %{with rfc3195}
 %files rfc3195
 %defattr(644,root,root,755)
@@ -629,15 +724,41 @@ fi
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/rsyslog/lmnsd_gtls.so
 
+%if %{with ksi}
+%files ksi
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/rsyslog/lmsig_ksi_ls12.so
+%endif
+
 %if %{with maxminddb}
 %files mmdblookup
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/rsyslog/mmdblookup.so
 %endif
 
+%if %{with grok}
+%files mmgrok
+%defattr(644,root,root,755)
+%doc contrib/mmgrok/README
+%attr(755,root,root) %{_libdir}/rsyslog/mmgrok.so
+%endif
+
+%if %{with curl} && %{with lognorm}
+%files mmkubernetes
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/rsyslog/mmkubernetes.so
+%endif
+
+%if %{with amqp}
+%files amqp
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/rsyslog/omamqp1.so
+%endif
+
 %if %{with redis}
 %files hiredis
 %defattr(644,root,root,755)
+%doc contrib/omhiredis/README
 %attr(755,root,root) %{_libdir}/rsyslog/omhiredis.so
 %endif
 
@@ -650,6 +771,7 @@ fi
 %if %{with mongodb}
 %files mongodb
 %defattr(644,root,root,755)
+%doc plugins/ommongodb/README
 %attr(755,root,root) %{_libdir}/rsyslog/ommongodb.so
 %endif
 
