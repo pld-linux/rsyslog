@@ -33,19 +33,22 @@ Summary(pl.UTF-8):	Programy logujące zdarzenia w systemie i jądrze Linuksa
 Summary(pt_BR.UTF-8):	Registrador de log do sistema linux
 Summary(tr.UTF-8):	Linux sistem ve çekirdek kayıt süreci
 Name:		rsyslog
-Version:	8.2004.0
-Release:	3
+Version:	8.2008.0
+Release:	1
 License:	GPL v3+
 Group:		Daemons
 #Source0Download: https://www.rsyslog.com/downloads/download-v8-stable/
 Source0:	https://www.rsyslog.com/files/download/rsyslog/%{name}-%{version}.tar.gz
-# Source0-md5:	375a60ab0f461367f84f07a5dbda6de2
+# Source0-md5:	9b6ae1a517231764ad4fbd68181cc23e
 Source1:	%{name}.init
 Source2:	%{name}.conf
 Source3:	%{name}.sysconfig
 Source4:	%{name}.logrotate
-Patch0:		rsyslog-systemd.patch
+Source5:	%{name}.service
+Patch0:		%{name}-tirpc.patch
 URL:		https://www.rsyslog.com/
+BuildRequires:	autoconf >= 2.61
+BuildRequires:	automake
 %{?with_zeromq:BuildRequires:	czmq-devel >= 3.0.2}
 %{?with_grok:BuildRequires:	glib2-devel >= 2.0}
 BuildRequires:	gnutls-devel >= 1.4.0
@@ -64,6 +67,8 @@ BuildRequires:	liblogging-stdlog-devel >= 1.0.3
 BuildRequires:	libnet-devel >= 1:1.1
 %{?with_kafka:BuildRequires:	librdkafka-devel >= 0.9.1}
 %{?with_relp:BuildRequires:	librelp-devel >= 1.2.14}
+BuildRequires:	libtirpc-devel
+BuildRequires:	libtool
 BuildRequires:	libuuid-devel
 %{?with_mongodb:BuildRequires:	mongo-c-driver-devel >= 1.0}
 %{?with_mysql:BuildRequires:	mysql-devel}
@@ -441,6 +446,11 @@ naprzemiennie z pewnej liczby portów źródłowych.
 %{__mv} plugins/omelasticsearch/README{,.omelasticsearch}
 
 %build
+%{__libtoolize}
+%{__aclocal} -I m4
+%{__autoconf}
+%{__autoheader}
+%{__automake}
 %configure \
 	--disable-silent-rules \
 	%{?with_curl:--enable-clickhouse} \
@@ -519,7 +529,7 @@ naprzemiennie z pewnej liczby portów źródłowych.
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/{sysconfig,rc.d/init.d,logrotate.d,rsyslog.d} \
-	$RPM_BUILD_ROOT{%{_sbindir},%{_mandir}/man{5,8},%{_bindir}} \
+	$RPM_BUILD_ROOT{%{systemdunitdir},%{_sbindir},%{_mandir}/man{5,8},%{_bindir}} \
 	$RPM_BUILD_ROOT/{dev,var/log}
 
 %{__make} install \
@@ -529,6 +539,7 @@ install -p %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/rsyslog
 cp -p %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/rsyslog.conf
 cp -p %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/rsyslog
 cp -p %{SOURCE4} $RPM_BUILD_ROOT/etc/logrotate.d/rsyslog
+cp -p %{SOURCE5} $RPM_BUILD_ROOT%{systemdunitdir}
 
 for n in cron daemon debug kernel lpr maillog messages secure spooler syslog user; do
 	> $RPM_BUILD_ROOT/var/log/$n

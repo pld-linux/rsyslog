@@ -1,0 +1,24 @@
+--- rsyslog-8.2008.0/configure.ac.orig	2020-08-25 10:39:08.000000000 +0200
++++ rsyslog-8.2008.0/configure.ac	2020-10-13 07:15:01.274384785 +0200
+@@ -93,6 +93,8 @@
+ 
+ PKG_CHECK_MODULES([LIBFASTJSON], [libfastjson >= 0.99.8],,)
+ 
++PKG_CHECK_MODULES([LIBTIRPC], [libtirpc])
++
+ AC_DEFINE_UNQUOTED([PLATFORM_ID], ["${host}"], [platform id for display purposes])
+ # we don't mind if we don't have the lsb_release utility. But if we have, it's
+ # nice to have the extra information.
+--- rsyslog-8.2008.0/contrib/mmgrok/Makefile.am.orig	2020-03-30 11:33:29.000000000 +0200
++++ rsyslog-8.2008.0/contrib/mmgrok/Makefile.am	2020-10-13 07:15:27.987573401 +0200
+@@ -1,8 +1,8 @@
+ pkglib_LTLIBRARIES = mmgrok.la
+ 
+ mmgrok_la_SOURCES = mmgrok.c
+-mmgrok_la_CPPFLAGS = $(GLIB_CFLAGS) $(RSRT_CFLAGS) $(PTHREADS_CFLAGS)
++mmgrok_la_CPPFLAGS = $(GLIB_CFLAGS) $(RSRT_CFLAGS) $(PTHREADS_CFLAGS) $(LIBTIRPC_CFLAGS)
+ mmgrok_la_LDFLAGS = -module -avoid-version
+-mmgrok_la_LIBADD = $(GLIB_LIBS) -lgrok $(LIBFASTJSON_LIBS)
++mmgrok_la_LIBADD = $(GLIB_LIBS) -lgrok $(LIBFASTJSON_LIBS) $(LIBTIRPC_LIBS)
+ 
+ EXTRA_DIST = 
