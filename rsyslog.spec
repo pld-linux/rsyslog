@@ -84,6 +84,7 @@ BuildRequires:	rpmbuild(macros) >= 1.626
 BuildRequires:	xxHash-devel
 BuildRequires:	zlib-devel
 Requires(post):	fileutils
+Requires(post):	sed >= 4.0
 Requires(post,preun):	/sbin/chkconfig
 Requires(post,preun):	rc-scripts >= 0.2.0
 Requires(postun):	/usr/sbin/groupdel
@@ -95,7 +96,6 @@ Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
 Requires(pre):	/usr/sbin/usermod
 Requires(post,preun,postun):	systemd-units >= 38
-Requires(triggerpostun):	sed >= 4.0
 # for vservers we don't need klogd and syslog works without klogd
 # (just it doesn't log kernel buffer into syslog)
 # Requires:	klogd
