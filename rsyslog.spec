@@ -439,7 +439,7 @@ naprzemiennie z pewnej liczby portów źródłowych.
 
 %prep
 %setup -q
-%patch0 -p1
+%patch -P0 -p1
 
 %{__mv} contrib/imczmq/README{,.imczmq}
 %{__mv} contrib/omczmq/README{,.omczmq}
