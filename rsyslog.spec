@@ -14,10 +14,10 @@
 %bcond_without	maxminddb	# MaxmindDB dblookup support
 %bcond_without	mongodb		# MongoDB output support
 %bcond_without	mysql		# MySQL database support
-%bcond_with	openssl		# mmrfc5424addhmac module
+%bcond_without	openssl		# mmrfc5424addhmac, imdtls, omdtls, sslcrypto
 %bcond_without	pgsql		# PostgreSQL database support
 %bcond_without	rabbitmq	# RammitMQ support
-%bcond_without	redis		# REDIS output support via hiredis
+%bcond_without	redis		# REDIS input/output support via hiredis
 %bcond_without	relp		# RELP input/output support
 %bcond_without	rfc3195		# RFC 3195 input support
 %bcond_without	snmp		# SNMP support
@@ -33,13 +33,13 @@ Summary(pl.UTF-8):	Programy logujące zdarzenia w systemie i jądrze Linuksa
 Summary(pt_BR.UTF-8):	Registrador de log do sistema linux
 Summary(tr.UTF-8):	Linux sistem ve çekirdek kayıt süreci
 Name:		rsyslog
-Version:	8.2402.0
+Version:	8.2508.0
 Release:	1
 License:	GPL v3+
 Group:		Daemons
 #Source0Download: https://www.rsyslog.com/downloads/download-v8-stable/
 Source0:	https://www.rsyslog.com/files/download/rsyslog/%{name}-%{version}.tar.gz
-# Source0-md5:	422b7d457f184134a872a5a519d3884e
+# Source0-md5:	55478d2f77fb6934ba2f260eae0744fa
 Source1:	%{name}.init
 Source2:	%{name}.conf
 Source3:	%{name}.sysconfig
@@ -58,7 +58,7 @@ BuildRequires:	gnutls-devel >= 1.4.0
 BuildRequires:	libdbi-devel
 BuildRequires:	libestr-devel >= 0.1.9
 BuildRequires:	libfastjson-devel >= 0.99.8
-BuildRequires:	libgcrypt-devel
+BuildRequires:	libgcrypt-devel >= 1.11.2-2
 %{?with_ksi:BuildRequires:	libksi-devel >= 3.19.0}
 %{?with_rfc3195:BuildRequires:	liblogging-rfc3195-devel >= 1.0.1}
 BuildRequires:	liblogging-stdlog-devel >= 1.0.3
@@ -70,10 +70,11 @@ BuildRequires:	libnet-devel >= 1:1.1
 BuildRequires:	libtirpc-devel
 BuildRequires:	libtool
 BuildRequires:	libuuid-devel
+BuildRequires:	zstd-devel >= 1.4.0
 %{?with_mongodb:BuildRequires:	mongo-c-driver-devel >= 1.0}
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_snmp:BuildRequires:	net-snmp-devel}
-%{?with_openssl:BuildRequires:	openssl-devel >= 0.9.7}
+%{?with_openssl:BuildRequires:	openssl-devel >= 1.1.0}
 %{?with_amqp:BuildRequires:	qpid-proton-c-devel >= 0.9}
 BuildRequires:	pkgconfig
 %{?with_pgsql:BuildRequires:	postgresql-devel}
@@ -326,17 +327,17 @@ Wtyczka wyjściowa rsysloga wysyłająca komunikaty do magistrali
 zgodnej z protokołem AMQP 1.0.
 
 %package hiredis
-Summary:	REDIS output support for rsyslog
-Summary(pl.UTF-8):	Obsługa wyjścia REDIS dla rsysloga
+Summary:	REDIS input/output support for rsyslog
+Summary(pl.UTF-8):	Obsługa wejścia/wyjścia REDIS dla rsysloga
 Group:		Daemons
 Requires:	%{name} = %{version}-%{release}
 Requires:	hiredis >= 0.10.1
 
 %description hiredis
-REDIS output support for rsyslog.
+REDIS input/output support for rsyslog.
 
 %description hiredis -l pl.UTF-8
-Obsługa wyjścia REDIS dla rsysloga.
+Obsługa wejścia/wyjścia REDIS dla rsysloga.
 
 %package dbi
 Summary:	libdbi database support for rsyslog
@@ -379,6 +380,19 @@ add MySQL database support to rsyslog.
 %description mysql -l pl.UTF-8
 Pakiet rsyslog-mysql zawiera moduł dynamiczny dodający obsługę bazy
 danych MySQL do rsysloga.
+
+%package openssl
+Summary:	SSL/TLS support for rsyslog
+Summary(pl.UTF-8):	Obsługa SSL/TLS dla rsysloga
+Group:		Daemons
+Requires:	%{name} = %{version}-%{release}
+Requires:	openssl >= 1.1.0
+
+%description openssl
+SSL/TLS support for rsyslog.
+
+%description openssl -l pl.UTF-8
+Obsługa SSL/TLS dla rsysloga.
 
 %package pgsql
 Summary:	PostgresSQL support for rsyslog
@@ -464,14 +478,18 @@ naprzemiennie z pewnej liczby portów źródłowych.
 	%{?with_curl:--enable-imdocker} \
 	--enable-imfile \
 	%{?with_zeromq:--enable-imczmq} \
+	%{?with_openssl:--enable-imdtls} \
+	%{?with_redis:--enable-imhiredis} \
 	%{?with_systemd:--enable-imjournal} \
 	%{?with_kafka:--enable-imkafka} \
+	--enable-improg \
 	--enable-impstats \
 	--enable-imptcp \
 	--enable-imtuxedoulog \
 	%{?with_ksi:--enable-ksi-ls12} \
 	%{?with_dbi:--enable-libdbi} \
 	%{!?with_systemd:--disable-libsystemd} \
+	--enable-libzstd \
 	--enable-mail \
 	--enable-mmanon \
 	--enable-mmaudit \
@@ -494,6 +512,7 @@ naprzemiennie z pewnej liczby portów źródłowych.
 	%{?with_mysql:--enable-mysql} \
 	%{?with_amqp:--enable-omamqp1} \
 	%{?with_zeromq:--enable-omczmq} \
+	%{?with_openssl:--enable-omdtls} \
 	--enable-omfile-hardened \
 	%{?with_curl:--enable-omhttp} \
 	%{?with_curl:--enable-omhttpfs} \
@@ -507,6 +526,8 @@ naprzemiennie z pewnej liczby portów źródłowych.
 	--enable-omstdout \
 	%{?with_tcl:--enable-omtcl} \
 	--enable-omudpspoof \
+	%{?with_openssl:--enable-openssl} \
+	%{?with_openssl:--enable-opensslcrypto} \
 	--enable-omuxsock \
 	%{?with_pgsql:--enable-pgsql} \
 	--enable-pmaixforwardedfrom \
@@ -632,6 +653,7 @@ fi
 %{?with_systemd:%attr(755,root,root) %{_libdir}/rsyslog/imjournal.so}
 %attr(755,root,root) %{_libdir}/rsyslog/imklog.so
 %attr(755,root,root) %{_libdir}/rsyslog/immark.so
+%attr(755,root,root) %{_libdir}/rsyslog/improg.so
 %attr(755,root,root) %{_libdir}/rsyslog/impstats.so
 %attr(755,root,root) %{_libdir}/rsyslog/imptcp.so
 %attr(755,root,root) %{_libdir}/rsyslog/imtcp.so
@@ -646,6 +668,7 @@ fi
 %attr(755,root,root) %{_libdir}/rsyslog/lmtcpclt.so
 %attr(755,root,root) %{_libdir}/rsyslog/lmtcpsrv.so
 %attr(755,root,root) %{_libdir}/rsyslog/lmzlibw.so
+%attr(755,root,root) %{_libdir}/rsyslog/lmzstdw.so
 %attr(755,root,root) %{_libdir}/rsyslog/mmanon.so
 %attr(755,root,root) %{_libdir}/rsyslog/mmaudit.so
 %attr(755,root,root) %{_libdir}/rsyslog/mmcount.so
@@ -770,6 +793,7 @@ fi
 %files hiredis
 %defattr(644,root,root,755)
 %doc contrib/omhiredis/README
+%attr(755,root,root) %{_libdir}/rsyslog/imhiredis.so
 %attr(755,root,root) %{_libdir}/rsyslog/omhiredis.so
 %endif
 
@@ -791,6 +815,15 @@ fi
 %defattr(644,root,root,755)
 %doc plugins/ommysql/createDB.sql
 %attr(755,root,root) %{_libdir}/rsyslog/ommysql.so
+%endif
+
+%if %{with openssl}
+%files openssl
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/rsyslog/imdtls.so
+%attr(755,root,root) %{_libdir}/rsyslog/lmnsd_ossl.so
+%attr(755,root,root) %{_libdir}/rsyslog/mmrfc5424addhmac.so
+%attr(755,root,root) %{_libdir}/rsyslog/omdtls.so
 %endif
 
 %if %{with pgsql}
