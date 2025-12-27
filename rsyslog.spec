@@ -34,7 +34,7 @@ Summary(pt_BR.UTF-8):	Registrador de log do sistema linux
 Summary(tr.UTF-8):	Linux sistem ve çekirdek kayıt süreci
 Name:		rsyslog
 Version:	8.2508.0
-Release:	2
+Release:	3
 License:	GPL v3+
 Group:		Daemons
 #Source0Download: https://www.rsyslog.com/downloads/download-v8-stable/
