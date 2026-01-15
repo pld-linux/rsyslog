@@ -33,13 +33,13 @@ Summary(pl.UTF-8):	Programy logujące zdarzenia w systemie i jądrze Linuksa
 Summary(pt_BR.UTF-8):	Registrador de log do sistema linux
 Summary(tr.UTF-8):	Linux sistem ve çekirdek kayıt süreci
 Name:		rsyslog
-Version:	8.2508.0
-Release:	3
+Version:	8.2512.0
+Release:	1
 License:	GPL v3+
 Group:		Daemons
 #Source0Download: https://www.rsyslog.com/downloads/download-v8-stable/
 Source0:	https://www.rsyslog.com/files/download/rsyslog/%{name}-%{version}.tar.gz
-# Source0-md5:	55478d2f77fb6934ba2f260eae0744fa
+# Source0-md5:	744e44c74f9ecd97ee800c78dc8271d3
 Source1:	%{name}.init
 Source2:	%{name}.conf
 Source3:	%{name}.sysconfig
@@ -675,6 +675,7 @@ fi
 %attr(755,root,root) %{_libdir}/rsyslog/mmexternal.so
 %attr(755,root,root) %{_libdir}/rsyslog/mmfields.so
 %attr(755,root,root) %{_libdir}/rsyslog/mmjsonparse.so
+%attr(755,root,root) %{_libdir}/rsyslog/mmleefparse.so
 %attr(755,root,root) %{_libdir}/rsyslog/mmpstrucdata.so
 %attr(755,root,root) %{_libdir}/rsyslog/mmrm1stspace.so
 %attr(755,root,root) %{_libdir}/rsyslog/mmsequence.so
