@@ -112,7 +112,7 @@ Provides:	service(syslog)
 Provides:	syslogdaemon
 Provides:	user(syslog)
 Obsoletes:	msyslog
-Obsoletes:	rsyslog-systemd
+Obsoletes:	rsyslog-systemd < 5.8.6-4
 Obsoletes:	sysklogd
 Obsoletes:	syslog-ng
 Conflicts:	cronie < 1.5.0-3
